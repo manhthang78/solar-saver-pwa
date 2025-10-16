@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Saver App</title>
+    <!-- Tải Tailwind CSS để giữ nguyên phong cách -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Định nghĩa Manifest cho PWA (Bước quan trọng để cài đặt) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#10b981">
+    
+    <!-- Tải React và ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Tải Babel để xử lý JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Tải thư viện biểu đồ Recharts -->
+    <script src="https://cdn.jsdelivr.net/npm/recharts/umd/Recharts.min.js"></script>
+
+    <style>
+        /* Thiết lập font Inter cho ứng dụng */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+        }
+        /* Đảm bảo ứng dụng chạy full height trên mobile */
+        #root {
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // --- Bắt đầu mã React Solar Saver ---
+
+        // Import các icon Lucide (Sử dụng SVG inline để tránh lỗi import)
+        const Icon = ({ name, size = 24, className = '', color = 'currentColor' }) => {
+            const icons = {
+                Home: props => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+                History: props => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-1.33 1.5"/><path d="M12 7v5l4 2"/></svg>,
+                Settings: props => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.2a2 2 0 0 1-1.4 1.4L4.77 7.77a2 2 0 0 0-1.12 1.95v.5a2 2 0 0 0 1.12 1.95l1.65 1.65a2 2 0 0 1 1.4 1.4v.2a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.2a2 2 0 0 1 1.4-1.4l1.65-1.65a2 2 0 0 0 1.12-1.95v-.5a2 2 0 0 0-1.12-1.95L15.34 6.2a2 2 0 0 1-1.4-1.4V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>,
+                Trash2: props => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M15 6V4c0-1-1-2-2-2h-2c-1 0-2 1-2 2v2"/></svg>,
+                CheckCircle: props => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>,
+                Clock: props => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+                BarChart3: props => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>,
+            };
+            const Component = icons[name];
+            return Component ? <Component {...props} /> : null;
+        };
+        
+        // FIX: Thêm cơ chế bảo vệ (safeguard) để đảm bảo window.Recharts đã được tải.
+        const Recharts = window.Recharts || {};
+        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+        const { useState, useEffect, Fragment } = React;
+
+
+        const TAX_RATE = 0.08; // 8% VAT
+
+        function App() {
+          // Dữ liệu biểu giá điện khởi tạo
+          const initialElectricPrice = [
+            { bac: 1, from: 0, to: 50, price: 1984 },
+            { bac: 2, from: 51, to: 100, price: 2050 },
+            { bac: 3, from: 101, to: 200, price: 2380 },
+            { bac: 4, from: 201, to: 300, price: 2998 },
+            { bac: 5, from: 301, to: 400, price: 3250 },
+            { bac: 6, from: 401, to: 999999, price: 3398 }
+          ];
+
+          const [activeTab, setActiveTab] = useState('home');
+          const [contracts, setContracts] = useState(2);
+          const [priceUpdateDate, setPriceUpdateDate] = useState('10/05/2025'); // Ngày cập nhật giá điện
+          const [electricPriceState, setElectricPriceState] = useState(initialElectricPrice); // NEW STATE: Biểu giá điện trong trạng thái
+          
+          const [investment, setInvestment] = useState({
+            capacity: 9840,
+            power: 14.3,
+            cost: 150000000,
+          });
+
+          const [currentMonth, setCurrentMonth] = useState({
+            month: new Date().toISOString().slice(0, 7), // Format: YYYY-MM
+            evn: 350,
+            solar: 600,
+            maintenanceCost: 0, // Chi phí bảo dưỡng tháng này
+          });
+
+          const [history, setHistory] = useState([]);
+
+          // Hàm cập nhật giá của một bậc thang cụ thể
+          const handlePriceChange = (index, newPrice) => {
+            const priceValue = parseInt(newPrice) || 0;
+            setElectricPriceState(prevPrices => 
+              prevPrices.map((tier, i) => 
+                i === index ? { ...tier, price: priceValue } : tier
+              )
+            );
+          };
+
+          // Tính tiền điện theo bậc thang (có tính số hợp đồng)
+          const calculateElectricCost = (kwh) => {
+            let totalCostBeforeTax = 0;
+            let remaining = kwh;
+
+            // SỬ DỤNG TRẠNG THÁI electricPriceState
+            for (let tier of electricPriceState) {
+              if (remaining <= 0) break;
+
+              // Tính số kWh của bậc này
+              let tierKwh;
+              if (tier.from === 0) {
+                tierKwh = tier.to;
+              } else {
+                tierKwh = tier.to - tier.from + 1;
+              }
+
+              // Nhân với số hợp đồng
+              const tierCapacity = tierKwh * contracts;
+              const usage = Math.min(remaining, tierCapacity);
+
+              totalCostBeforeTax += usage * tier.price;
+              remaining -= usage;
+            }
+
+            // Cộng thuế GTGT 8%
+            const totalCostWithTax = totalCostBeforeTax * (1 + TAX_RATE);
+
+            return Math.round(totalCostWithTax);
+          };
+
+          const calculateSavings = () => {
+            const totalUsage = currentMonth.evn + currentMonth.solar;
+            const withoutSolar = calculateElectricCost(totalUsage);
+            const actualCost = calculateElectricCost(currentMonth.evn);
+            const monthlySavings = withoutSolar - actualCost; // Tiết kiệm gộp (Gross Monthly Savings)
+
+            // Tính tổng tiết kiệm gộp tích lũy từ lịch sử
+            const grossTotalSavings = history.reduce((sum, record) => sum + record.savings, 0);
+
+            // Tính chi phí bảo dưỡng tích lũy (Tổng hợp từ lịch sử)
+            const totalMaintenancePaid = history.reduce((sum, record) => sum + record.maintenanceCost, 0);
+
+            // Tính tiết kiệm ròng tích lũy (Net Accumulated Savings)
+            const netTotalSavings = grossTotalSavings - totalMaintenancePaid;
+            
+            // Tính lãi tích lũy (Chỉ khi đã hoàn vốn)
+            const totalInvestment = investment.cost;
+            const isFullyRecovered = netTotalSavings >= totalInvestment;
+            const accumulatedProfit = isFullyRecovered ? netTotalSavings - totalInvestment : 0;
+            
+            // Tiết kiệm ròng dùng để hiển thị (không bao giờ âm nếu chưa hoàn vốn)
+            const totalSavingsForDisplay = Math.max(0, netTotalSavings);
+
+            // Tính % hoàn vốn/sinh lời
+            const recoveryPercent = (netTotalSavings / totalInvestment) * 100;
+
+            // Tính trung bình tiết kiệm gộp hàng tháng
+            const avgMonthlyGrossSavings = history.length > 0
+              ? grossTotalSavings / history.length
+              : monthlySavings;
+
+            // Tính trung bình chi phí bảo dưỡng hàng tháng
+            const avgMonthlyMaintenance = history.length > 0
+              ? totalMaintenancePaid / history.length
+              : currentMonth.maintenanceCost; 
+
+            // Tính trung bình tiết kiệm ròng hàng tháng
+            const avgMonthlyNetSavings = avgMonthlyGrossSavings - avgMonthlyMaintenance;
+
+            const remainingInvestment = totalInvestment - netTotalSavings;
+
+            // Dự kiến hoàn vốn: Vốn còn lại / Trung bình tiết kiệm ròng hàng tháng
+            const monthsToRecover = avgMonthlyNetSavings > 0
+              ? Math.ceil(remainingInvestment / avgMonthlyNetSavings)
+              : (remainingInvestment > 0 ? 9999 : 0); // 9999: Không thể hoàn vốn nếu tiết kiệm ròng âm
+
+            return {
+              totalUsage,
+              withoutSolar,
+              actualCost,
+              monthlySavings: monthlySavings, // Gross monthly savings
+              totalSavings: totalSavingsForDisplay, // Net accumulated savings for display
+              recoveryPercent,
+              monthsToRecover,
+              avgMonthlySavings: avgMonthlyNetSavings,
+              isFullyRecovered,
+              accumulatedProfit,
+            };
+          };
+
+          const savings = calculateSavings();
+
+          const handleSaveMonth = () => {
+            // Format tháng từ YYYY-MM sang "Tháng MM-YYYY"
+            const [year, month] = currentMonth.month.split('-');
+            const formattedMonth = `${month}-${year}`; // Rút gọn để hiển thị trên trục X
+
+            const newRecord = {
+              month: formattedMonth,
+              evn: currentMonth.evn,
+              solar: currentMonth.solar,
+              maintenanceCost: currentMonth.maintenanceCost, // LƯU CHI PHÍ BẢO DƯỠNG THÁNG
+              cost: savings.actualCost,
+              savings: savings.monthlySavings // Lưu savings gộp (gross savings)
+            };
+
+            setHistory([...history, newRecord]);
+            
+            // Reset chi phí bảo dưỡng về 0 sau khi lưu
+            setCurrentMonth(prev => ({ ...prev, maintenanceCost: 0 }));
+          };
+
+          // Bổ sung: Hàm xóa dữ liệu nhập sai
+          const handleDeleteRecord = (index) => {
+            const newHistory = history.filter((_, i) => i !== index);
+            setHistory(newHistory);
+          };
+
+          // Hàm chuẩn bị dữ liệu cho Biểu đồ
+          const getChartData = () => {
+            let accumulatedNetSavings = 0;
+            return history.map(record => {
+              // Net monthly savings = Gross monthly savings - Monthly maintenance cost
+              const netMonthlySavings = record.savings - record.maintenanceCost;
+              accumulatedNetSavings += netMonthlySavings;
+
+              return {
+                name: record.month,
+                // Tiết kiệm ròng tích lũy (so với Vốn đầu tư)
+                'Tiết kiệm Ròng': accumulatedNetSavings,
+                // Điểm Hoàn vốn (Vốn đầu tư)
+                'Vốn Đầu Tư': investment.cost, 
+              };
+            });
+          };
+
+          const chartData = getChartData();
+          
+          // Component hiển thị thông tin Hoàn vốn/Lãi tích lũy
+          const RecoveryInfoCard = ({ savings, investment }) => {
+            const { isFullyRecovered, accumulatedProfit, monthsToRecover, recoveryPercent } = savings;
+            const investmentCost = investment.cost.toLocaleString('vi-VN');
+
+            return (
+              <div className={`rounded-xl shadow-lg p-6 text-white ${
+                isFullyRecovered 
+                  ? 'bg-gradient-to-r from-green-500 to-teal-500' 
+                  : 'bg-gradient-to-r from-orange-500 to-yellow-500'
+              }`}>
+                <h3 className="text-xl font-bold mb-3">
+                  {isFullyRecovered ? 'LÃI TÍCH LUỸ SỬ DỤNG SOLAR' : 'Thông tin Hoàn vốn'} (Đã trừ Bảo dưỡng)
+                </h3>
+                
+                <div className="flex items-center gap-2 mb-4 p-2 bg-white bg-opacity-20 rounded-lg">
+                  {isFullyRecovered ? (
+                    <Icon name="CheckCircle" size={20} className="text-white"/>
+                  ) : (
+                    <Icon name="Clock" size={20} className="text-white"/>
+                  )}
+                  <p className="text-sm font-semibold">
+                    Tình trạng: {isFullyRecovered ? 'Đã hoàn vốn, đang sinh lời' : 'Đang trong quá trình hoàn vốn'}
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm opacity-90">Vốn đầu tư</p>
+                    <p className="text-2xl font-bold">{investmentCost} đồng</p>
+                  </div>
+                  
+                  {isFullyRecovered ? (
+                    <div>
+                      <p className="text-sm opacity-90">Lãi ròng tích lũy</p>
+                      <p className="text-2xl font-bold">{accumulatedProfit.toLocaleString('vi-VN')} đồng</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-sm opacity-90">Dự kiến hoàn vốn trong</p>
+                      <p className="text-2xl font-bold">
+                        {monthsToRecover === 9999 ? ' > 833 năm' : `${monthsToRecover} tháng`}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="mt-4 bg-white bg-opacity-20 rounded-lg h-4 overflow-hidden">
+                  <div
+                    className="bg-white h-full transition-all duration-500"
+                    style={{width: `${Math.min(recoveryPercent, 100)}%`}}
+                  ></div>
+                </div>
+                <p className="text-sm opacity-90 text-right mt-1 font-medium">
+                    Mức hoàn vốn/sinh lời: {recoveryPercent.toFixed(2)}%
+                </p>
+              </div>
+            );
+          };
+
+
+          // Component Biểu đồ
+          const AnalysisChart = ({ data, investmentCost }) => {
+            // FIX: Chỉ render biểu đồ nếu có dữ liệu VÀ LineChart đã được tải thành công
+            const isChartReady = data.length > 0 && LineChart; 
+
+            return (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                  <Icon name="BarChart3" size={24} className="text-blue-600"/> Phân tích Hoàn vốn/Sinh lời
+                </h2>
+                {!isChartReady ? (
+                  <div className="text-center py-10 text-gray-500">
+                    {data.length === 0 ? 
+                      'Hãy nhập dữ liệu lịch sử để xem biểu đồ phân tích.' : 
+                      'Lỗi: Thư viện biểu đồ chưa được tải đầy đủ. Vui lòng tải lại trang.'}
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart
+                      data={data}
+                      margin={{ top: 10, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                      <XAxis dataKey="name" label={{ value: 'Tháng', position: 'bottom', fill: '#4b5563' }} />
+                      {/* YAxis sử dụng đơn vị tiền tệ (VNĐ), format với toLocaleString */}
+                      <YAxis 
+                        tickFormatter={(value) => value.toLocaleString('vi-VN')}
+                        label={{ value: 'Tiền (VNĐ)', angle: -90, position: 'left', fill: '#4b5563' }}
+                      />
+                      <Tooltip 
+                        formatter={(value, name) => [`${value.toLocaleString('vi-VN')} đ`, name]}
+                        labelFormatter={(label) => `Tháng ${label}`}
+                        contentStyle={{ 
+                          backgroundColor: '#ffffff', 
+                          border: '1px solid #ccc', 
+                          borderRadius: '8px', 
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)' 
+                        }}
+                      />
+                      <Legend 
+                        verticalAlign="top" 
+                        height={36}
+                        formatter={(value) => <span style={{ color: '#333' }}>{value}</span>}
+                      />
+                      {/* Đường Tiết kiệm Ròng (chuyển từ Đỏ sang Xanh khi hoàn vốn) */}
+                      <Line 
+                        type="monotone" 
+                        dataKey="Tiết kiệm Ròng" 
+                        stroke="#10B981" 
+                        strokeWidth={3} 
+                        dot={true} 
+                        activeDot={{ r: 8 }} 
+                      />
+                      {/* Đường Vốn Đầu Tư (Đường mốc hoàn vốn) */}
+                      <Line 
+                        type="monotone" 
+                        dataKey="Vốn Đầu Tư" 
+                        stroke="#EF4444" 
+                        strokeDasharray="5 5" 
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+                <p className="mt-4 text-sm text-gray-600">
+                  * Đồ thị hiển thị: **Tiết kiệm Ròng Tích lũy** (đường Xanh) so với **Vốn Đầu Tư** (đường Đỏ). Điểm giao nhau là điểm hòa vốn.
+                </p>
+              </div>
+            );
+          };
+
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-6 shadow-lg">
+                <h1 className="text-3xl font-bold flex items-center gap-2">
+                  ☀️ Solar Saver
+                </h1>
+                <p className="text-blue-100 mt-1">Theo dõi tiết kiệm điện mặt trời</p>
+              </div>
+              {/* Main Content */}
+              <div className="max-w-6xl mx-auto p-4">
+                {activeTab === 'home' && (
+                  <div className="space-y-6">
+                    {/* Input Section */}
+                    <div className="bg-white rounded-xl shadow-lg p-6">
+                      <h2 className="text-2xl font-bold text-gray-800 mb-4">Nhập liệu tháng</h2>
+
+                      <div className="grid md:grid-cols-4 gap-4"> {/* Grid 4 cột */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Tháng
+                          </label>
+                          <input
+                            type="month"
+                            value={currentMonth.month}
+                            onChange={(e) => setCurrentMonth({...currentMonth, month: e.target.value})}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Điện lưới (kWh)
+                          </label>
+                          <input
+                            type="number"
+                            value={currentMonth.evn}
+                            onChange={(e) => setCurrentMonth({...currentMonth, evn: parseInt(e.target.value) || 0})}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Solar (kWh)
+                          </label>
+                          <input
+                            type="number"
+                            value={currentMonth.solar}
+                            onChange={(e) => setCurrentMonth({...currentMonth, solar: parseInt(e.target.value) || 0})}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          />
+                        </div>
+                        
+                        {/* INPUT CHI PHÍ BẢO DƯỠNG THÁNG */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Chi phí BD tháng này (VNĐ)
+                          </label>
+                          <input
+                            type="number"
+                            value={currentMonth.maintenanceCost}
+                            onChange={(e) => setCurrentMonth({...currentMonth, maintenanceCost: parseInt(e.target.value) || 0})}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Summary Cards */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl shadow-lg p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold">Nếu không có Solar</h3>
+                          <span className="text-3xl">⚡</span>
+                        </div>
+                        <p className="text-4xl font-bold mb-1">{savings.totalUsage} kWh</p>
+                        <p className="text-2xl font-semibold">{savings.withoutSolar.toLocaleString('vi-VN')} đồng</p>
+                      </div>
+                      <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-lg p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold">Thực tế trả</h3>
+                          <span className="text-3xl">💰</span>
+                        </div>
+                        <p className="text-4xl font-bold mb-1">{currentMonth.evn} kWh</p>
+                        <p className="text-2xl font-semibold">{savings.actualCost.toLocaleString('vi-VN')} đồng</p>
+                      </div>
+                      <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl shadow-lg p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold">Tiết kiệm tháng này (Gộp)</h3>
+                          <span className="text-3xl">☀️</span>
+                        </div>
+                        <p className="text-4xl font-bold mb-1">{currentMonth.solar} kWh</p>
+                        <p className="text-2xl font-semibold">{savings.monthlySavings.toLocaleString('vi-VN')} đồng</p>
+                      </div>
+                      <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl shadow-lg p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold">Tổng tiết kiệm RÒNG tích lũy</h3>
+                          <span className="text-3xl">📈</span>
+                        </div>
+                        <p className="text-4xl font-bold mb-1">{savings.totalSavings.toLocaleString('vi-VN')} đồng</p>
+                        <p className="text-2xl font-semibold">
+                            {savings.isFullyRecovered ? 'Đã vượt vốn đầu tư' : `Còn lại ${(investment.cost - savings.totalSavings).toLocaleString('vi-VN')} đ`}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Recovery/Profit Info Card */}
+                    <RecoveryInfoCard savings={savings} investment={investment} />
+
+                    {/* Save Button */}
+                    <button
+                      onClick={handleSaveMonth}
+                      className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                    >
+                      💾 Lưu dữ liệu tháng
+                    </button>
+                  </div>
+                )}
+
+                {activeTab === 'analysis' && (
+                  <AnalysisChart data={chartData} investmentCost={investment.cost} />
+                )}
+
+                {activeTab === 'history' && (
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Lịch sử theo dõi</h2>
+                    <p className="text-sm text-gray-500 mb-4">
+                      * Mức **Tiết kiệm** ở đây là tiết kiệm gộp (chưa trừ chi phí bảo dưỡng).
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-gradient-to-r from-blue-100 to-green-100">
+                            <th className="px-4 py-3 text-left font-semibold">Kỳ sử dụng</th>
+                            <th className="px-4 py-3 text-right font-semibold">EVN</th>
+                            <th className="px-4 py-3 text-right font-semibold">Solar</th>
+                            <th className="px-4 py-3 text-right font-semibold">Thực tế trả</th>
+                            <th className="px-4 py-3 text-right font-semibold">Chi phí BD</th> {/* Cột mới */}
+                            <th className="px-4 py-3 text-right font-semibold">Tiết kiệm (Gộp)</th>
+                            <th className="px-4 py-3 text-center font-semibold">Thao tác</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                        {history.length === 0 ? (
+                          <tr>
+                            <td colSpan="7" className="px-4 py-8 text-center text-gray-500">
+                              Chưa có dữ liệu. Hãy thêm dữ liệu tháng từ trang chủ.
+                            </td>
+                          </tr>
+                        ) : history.map((record, index) => (
+                            <tr key={index} className="border-b hover:bg-gray-50">
+                              <td className="px-4 py-3">{record.month}</td>
+                              <td className="px-4 py-3 text-right">{record.evn} kWh</td>
+                              <td className="px-4 py-3 text-right">{record.solar} kWh</td>
+                              <td className="px-4 py-3 text-right font-semibold text-blue-600">
+                                {record.cost.toLocaleString('vi-VN')} đ
+                              </td>
+                              <td className="px-4 py-3 text-right text-red-600">
+                                {record.maintenanceCost.toLocaleString('vi-VN')} đ
+                              </td>
+                              <td className="px-4 py-3 text-right font-semibold text-green-600">
+                                {record.savings.toLocaleString('vi-VN')} đ
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <button
+                                  onClick={() => handleDeleteRecord(index)}
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                  title="Xóa dòng này"
+                                >
+                                  <Icon name="Trash2" size={18} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        }</tbody>
+                        <tfoot>
+                        {history.length > 0 ? (
+                            <Fragment> 
+                                <tr key="total" className="bg-gradient-to-r from-green-100 to-blue-100 font-bold">
+                                    <td className="px-4 py-3" colSpan="3">Tổng cộng</td>
+                                    <td className="px-4 py-3 text-right">
+                                        {history.reduce((sum, r) => sum + r.cost, 0).toLocaleString('vi-VN')} đ
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-red-600">
+                                        {history.reduce((sum, r) => sum + r.maintenanceCost, 0).toLocaleString('vi-VN')} đ
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-green-600">
+                                        {history.reduce((sum, r) => sum + r.savings, 0).toLocaleString('vi-VN')} đ
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr key="average" className="bg-gradient-to-r from-blue-50 to-green-50 font-semibold">
+                                    <td className="px-4 py-3" colSpan="3">Trung bình hàng tháng (Gộp)</td>
+                                    <td className="px-4 py-3 text-right">
+                                        {Math.round(history.reduce((sum, r) => sum + r.cost, 0) / history.length).toLocaleString('vi-VN')} đ
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-red-600">
+                                        {Math.round(history.reduce((sum, r) => sum + r.maintenanceCost, 0) / history.length).toLocaleString('vi-VN')} đ
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-green-600">
+                                        {Math.round(history.reduce((sum, r) => sum + r.savings, 0) / history.length).toLocaleString('vi-VN')} đ
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </Fragment>
+                        ) : null}
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'settings' && (
+                  <div className="space-y-6">
+                    <div className="bg-white rounded-xl shadow-lg p-6">
+                      <h2 className="text-2xl font-bold text-gray-800 mb-4">Cài đặt hệ thống</h2>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Số hợp đồng/công tơ
+                          </label>
+                          <input
+                            type="number"
+                            value={contracts}
+                            onChange={(e) => setContracts(parseInt(e.target.value) || 1)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                        {/* THÊM INPUT NGÀY ÁP DỤNG BIỂU GIÁ */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Ngày áp dụng biểu giá (dd/mm/yyyy)
+                          </label>
+                          <input
+                            type="text"
+                            value={priceUpdateDate}
+                            onChange={(e) => setPriceUpdateDate(e.target.value)}
+                            placeholder="Ví dụ: 01/03/2025"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-lg p-6">
+                      <h2 className="text-2xl font-bold text-gray-800 mb-4">Mức đầu tư Solar</h2>
+
+                                    <div className="grid md:grid-cols-3 gap-4"> {/* Grid 3 cột sau khi bỏ bảo dưỡng */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Hệ (Wh)
+                          </label>
+                          <input
+                            type="number"
+                            value={investment.capacity}
+                            onChange={(e) => setInvestment({...investment, capacity: parseInt(e.target.value) || 0})}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Lưu trữ (kW)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={investment.power}
+                            onChange={(e) => setInvestment({...investment, power: parseFloat(e.target.value) || 0})}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Thành tiền (VNĐ)
+                          </label>
+                          <input
+                            type="number"
+                            value={investment.cost}
+                            onChange={(e) => setInvestment({...investment, cost: parseInt(e.target.value) || 0})}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-lg p-6">
+                      {/* ĐỔI TÊN TIÊU ĐỀ */}
+                      <h2 className="text-2xl font-bold text-gray-800 mb-4">Biểu giá điện sinh hoạt</h2>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="bg-blue-100">
+                              <th className="px-4 py-2 text-left">Bậc</th>
+                              <th className="px-4 py-2 text-center">Từ (kWh)</th>
+                              <th className="px-4 py-2 text-center">Đến (kWh)</th>
+                              <th className="px-4 py-2 text-right">Giá (đồng/kWh)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {/* SỬ DỤNG electricPriceState VÀ Ô INPUT ĐỂ CHỈNH SỬA GIÁ */}
+                            {electricPriceState.map((tier, index) => (
+                              <tr key={tier.bac} className="border-b hover:bg-gray-50">
+                                <td className="px-4 py-2">Bậc {tier.bac}</td>
+                                <td className="px-4 py-2 text-center">{tier.from}</td>
+                                <td className="px-4 py-2 text-center">{tier.to === 999999 ? '>' : tier.to}</td>
+                                <td className="px-4 py-2 text-right font-semibold">
+                                  <input
+                                    type="number"
+                                    value={tier.price}
+                                    onChange={(e) => handlePriceChange(index, e.target.value)}
+                                    className="w-28 text-right px-2 py-1 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                                    min="0"
+                                    step="10"
+                                  />
+                                  <span className="ml-1 text-gray-700">đ</span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="mt-4 text-sm text-gray-600">
+                        {/* THÊM NGÀY CẬP NHẬT GIÁ */}
+                        * Ngày cập nhật giá: <span className="font-semibold text-blue-600">{priceUpdateDate}</span><br/>
+                        * Với {contracts} hợp đồng, mức sử dụng mỗi bậc = mức gốc × {contracts}<br/>
+                        * Ví dụ: Bậc 1 (0-50kWh) × {contracts} = 0-{50 * contracts}kWh<br/>
+                        * Thuế GTGT: {TAX_RATE * 100}%
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* Bottom Navigation */}
+              <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
+                <div className="max-w-6xl mx-auto flex justify-around">
+                  <button
+                    onClick={() => setActiveTab('home')}
+                    className={`flex-1 py-4 flex flex-col items-center gap-1 transition-colors ${
+                      activeTab === 'home' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'
+                    }`}
+                  >
+                    <Icon name="Home" size={24} />
+                    <span className="text-xs font-medium">Trang chủ</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setActiveTab('analysis')}
+                    className={`flex-1 py-4 flex flex-col items-center gap-1 transition-colors ${
+                      activeTab === 'analysis' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'
+                    }`}
+                  >
+                    <Icon name="BarChart3" size={24} />
+                    <span className="text-xs font-medium">Phân tích</span>
+                  </button>
+
+                            <button
+                    onClick={() => setActiveTab('history')}
+                    className={`flex-1 py-4 flex flex-col items-center gap-1 transition-colors ${
+                      activeTab === 'history' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'
+                    }`}
+                  >
+                    <Icon name="History" size={24} />
+                    <span className="text-xs font-medium">Lịch sử</span>
+                  </button>
+
+                            <button
+                    onClick={() => setActiveTab('settings')}
+                    className={`flex-1 py-4 flex flex-col items-center gap-1 transition-colors ${
+                      activeTab === 'settings' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'
+                    }`}
+                  >
+                    <Icon name="Settings" size={24} />
+                    <span className="text-xs font-medium">Cài đặt</span>
+                  </button>
+                </div>
+              </div>
+              {/* Bottom Padding */}
+              <div className="h-20"></div>
+            </div>
+          );
+        }
+
+        // --- Kết thúc mã React Solar Saver ---
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
