@@ -3,223 +3,413 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solar Saver - Bảng Điều Khiển</title>
-    
-    <!-- Cấu hình PWA -->
+    <meta name="description" content="Theo dõi tiết kiệm điện mặt trời">
+    <meta name="theme-color" content="#2563eb">
+    <title>Solar Saver</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#10b981">
-    
-    <!-- TẢI TẤT CẢ THƯ VIỆN BÊN NGOÀI TRƯỚC KHI TẢI CODE REACT -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/recharts/umd/Recharts.min.js"></script>
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f3f4f6;
-        }
-        #root {
-            min-height: 100vh;
-        }
+        body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        #root { min-height: 100vh; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
-    <!-- Khối script type="text/babel" chứa code React -->
-    <script type="text/babel"> 
-        const { useState, useEffect } = React;
-        
-        // Dữ liệu giả định cho biểu đồ năng lượng mặt trời
-        const data = [
-          { name: 'T1', "Sản xuất (kWh)": 650, "Tiết kiệm (VND)": 1500000, "CO2 giảm (kg)": 455 },
-          { name: 'T2', "Sản xuất (kWh)": 720, "Tiết kiệm (VND)": 1750000, "CO2 giảm (kg)": 504 },
-          { name: 'T3', "Sản xuất (kWh)": 810, "Tiết kiệm (VND)": 1900000, "CO2 giảm (kg)": 567 },
-          { name: 'T4', "Sản xuất (kWh)": 950, "Tiết kiệm (VND)": 2200000, "CO2 giảm (kg)": 665 },
-          { name: 'T5', "Sản xuất (kWh)": 1020, "Tiết kiệm (VND)": 2450000, "CO2 giảm (kg)": 714 },
-          { name: 'T6', "Sản xuất (kWh)": 980, "Tiết kiệm (VND)": 2300000, "CO2 giảm (kg)": 686 },
-        ];
+    <script type="text/babel">
+        const { useState } = React;
 
-        // Component Icon (Thay thế bằng biểu tượng Năng lượng mặt trời)
-        const SolarIcon = (props) => (
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={props.className || "w-6 h-6"} aria-hidden="true">
-                <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.575 17.567a.75.75 0 01-1.06-1.06L7.566 16.5l.009.009.008.007 1.077 1.077zM20.25 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM12 21.75a.75.75 0 01-.75-.75v-2.25a.75.75 0 011.5 0v2.25a.75.75 0 01-.75.75zM3.75 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zM17.567 16.425a.75.75 0 01-1.06 1.06l-.007-.008-.009-.008-1.077-1.077 1.06-1.06a.75.75 0 011.084 1.045l-.018.018zM6.417 5.175l1.06 1.06a.75.75 0 01-1.06 1.06L6.408 6.239l-1.06-1.06a.75.75 0 011.06-1.06zM18.783 6.239l-1.06 1.06a.75.75 0 01-1.06-1.06l1.06-1.06a.75.75 0 011.06 1.06zM12 8.25a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5z" />
+        // Icon components (inline SVG)
+        const HomeIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
             </svg>
         );
 
-        // Component Thẻ (Card Component)
-        const Card = ({ title, value, unit, icon }) => (
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex items-center justify-between transition duration-300 hover:shadow-xl">
-                <div>
-                    <p className="text-sm font-medium text-gray-500">{title}</p>
-                    <p className="text-3xl font-extrabold text-gray-900 mt-1">{value} <span className="text-base font-normal text-gray-500">{unit}</span></p>
-                </div>
-                <div className="p-3 rounded-full bg-yellow-100">
-                    {React.cloneElement(icon, { className: "w-6 h-6 text-yellow-600" })}
-                </div>
-            </div>
+        const HistoryIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
         );
 
-        const App = () => {
-          const [loading, setLoading] = useState(true);
-          const [rechartsComponents, setRechartsComponents] = useState({});
-          
-          // Sử dụng useEffect để kiểm tra sự sẵn sàng của thư viện một cách an toàn
-          useEffect(() => {
-            const checkRecharts = () => {
-                if (window.Recharts && window.Recharts.LineChart) {
-                    setRechartsComponents({
-                        LineChart: window.Recharts.LineChart,
-                        Line: window.Recharts.Line,
-                        XAxis: window.Recharts.XAxis,
-                        YAxis: window.Recharts.YAxis,
-                        CartesianGrid: window.Recharts.CartesianGrid,
-                        Tooltip: window.Recharts.Tooltip,
-                        Legend: window.Recharts.Legend,
-                        ResponsiveContainer: window.Recharts.ResponsiveContainer,
-                    });
-                    setLoading(false);
-                } else {
-                    const timer = setTimeout(checkRecharts, 200);
-                    return () => clearTimeout(timer);
-                }
-            };
-            checkRecharts();
-          }, []);
+        const SettingsIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v6m0 6v6m-9-9h6m6 0h6m-16.97 1.76l4.24 4.24m6.36 0l4.24-4.24m-4.24-6.36l4.24 4.24m-13.6 0l4.24-4.24"/>
+            </svg>
+        );
 
-          // Destructure các component đã được kiểm tra tính sẵn sàng
-          const { 
-              LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
-          } = rechartsComponents;
+        const TrashIcon = () => (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+        );
 
+        const DownloadIcon = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+        );
 
-          if (loading) {
-            return (
-              <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="text-xl font-semibold text-gray-600">Đang tải bảng điều khiển Solar Saver...</div>
-              </div>
-            );
-          }
+        const UploadIcon = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+        );
 
-          const isChartReady = LineChart && ResponsiveContainer; 
+        // Biểu giá điện sinh hoạt
+        const DEFAULT_ELECTRIC_PRICE = [
+            { bac: 1, from: 0, to: 50, price: 1984 },
+            { bac: 2, from: 51, to: 100, price: 2050 },
+            { bac: 3, from: 101, to: 200, price: 2380 },
+            { bac: 4, from: 201, to: 300, price: 2998 },
+            { bac: 5, from: 301, to: 400, price: 3350 },
+            { bac: 6, from: 401, to: 999999, price: 3460 }
+        ];
 
-          return (
-            <div className="p-4 sm:p-8 bg-gray-50 min-h-screen font-sans">
-              <div className="max-w-7xl mx-auto">
+        const TAX_RATE = 0.08;
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('home');
+            const [contracts, setContracts] = useState(() => {
+                const saved = localStorage.getItem('contracts');
+                return saved ? parseInt(saved) : 2;
+            });
+            const [electricPrice, setElectricPrice] = useState(() => {
+                const saved = localStorage.getItem('electricPrice');
+                return saved ? JSON.parse(saved) : DEFAULT_ELECTRIC_PRICE;
+            });
+            const [priceUpdateDate, setPriceUpdateDate] = useState(() => {
+                return localStorage.getItem('priceUpdateDate') || '2025-01-01';
+            });
+            const [investment, setInvestment] = useState(() => {
+                const saved = localStorage.getItem('investment');
+                return saved ? JSON.parse(saved) : { capacity: 8610, power: 14.3, cost: 140000000 };
+            });
+            const [currentMonth, setCurrentMonth] = useState({
+                month: new Date().toISOString().slice(0, 7),
+                evn: 0,
+                solar: 0
+            });
+            const [history, setHistory] = useState(() => {
+                const saved = localStorage.getItem('history');
+                return saved ? JSON.parse(saved) : [];
+            });
+            const [maintenance, setMaintenance] = useState(() => {
+                const saved = localStorage.getItem('maintenance');
+                return saved ? JSON.parse(saved) : [];
+            });
+            const [newMaintenance, setNewMaintenance] = useState({
+                date: new Date().toISOString().slice(0, 10),
+                description: '',
+                cost: 0
+            });
+
+            // Save to localStorage when data changes
+            React.useEffect(() => {
+                localStorage.setItem('contracts', contracts);
+            }, [contracts]);
+
+            React.useEffect(() => {
+                localStorage.setItem('electricPrice', JSON.stringify(electricPrice));
+            }, [electricPrice]);
+
+            React.useEffect(() => {
+                localStorage.setItem('priceUpdateDate', priceUpdateDate);
+            }, [priceUpdateDate]);
+
+            React.useEffect(() => {
+                localStorage.setItem('investment', JSON.stringify(investment));
+            }, [investment]);
+
+            React.useEffect(() => {
+                localStorage.setItem('history', JSON.stringify(history));
+            }, [history]);
+
+            React.useEffect(() => {
+                localStorage.setItem('maintenance', JSON.stringify(maintenance));
+            }, [maintenance]);
+
+            const calculateElectricCost = (kwh) => {
+                let totalCostBeforeTax = 0;
+                let remaining = kwh;
                 
-                {/* Tiêu đề */}
-                <header className="flex items-center justify-between border-b pb-4 mb-6">
-                  <h1 className="text-3xl font-extrabold text-gray-900 flex items-center">
-                    <SolarIcon className="w-8 h-8 mr-2 text-yellow-600" />
-                    Bảng Điều Khiển Năng Lượng Mặt Trời
-                  </h1>
-                  <button className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 transition duration-150">
-                    Xem Dữ Liệu Chi Tiết
-                  </button>
-                </header>
+                for (let tier of electricPrice) {
+                    if (remaining <= 0) break;
+                    
+                    let tierKwh;
+                    if (tier.from === 0) {
+                        tierKwh = tier.to;
+                    } else {
+                        tierKwh = tier.to - tier.from + 1;
+                    }
+                    
+                    const tierCapacity = tierKwh * contracts;
+                    const usage = Math.min(remaining, tierCapacity);
+                    
+                    totalCostBeforeTax += usage * tier.price;
+                    remaining -= usage;
+                }
+                
+                const totalCostWithTax = totalCostBeforeTax * (1 + TAX_RATE);
+                return Math.round(totalCostWithTax);
+            };
 
-                {/* Thẻ số liệu */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  {/* Tổng Năng lượng đã sản xuất (kWh) */}
-                  <Card 
-                    title="Tổng Năng Lượng Sản Xuất" 
-                    value="5,130" 
-                    unit="kWh" 
-                    icon={<SolarIcon />} 
-                  />
-                  {/* Tổng Tiết kiệm được (VND) */}
-                  <Card 
-                    title="Tổng Chi Phí Tiết Kiệm" 
-                    value="12,150,000" 
-                    unit="VND" 
-                    icon={<SolarIcon />} 
-                  />
-                  {/* Tổng CO2 giảm thiểu (kg) */}
-                  <Card 
-                    title="Tổng CO2 Giảm Thiểu" 
-                    value="3,591" 
-                    unit="kg" 
-                    icon={<SolarIcon />} 
-                  />
-                </div>
+            const calculateSavings = () => {
+                const totalUsage = currentMonth.evn + currentMonth.solar;
+                const withoutSolar = calculateElectricCost(totalUsage);
+                const actualCost = calculateElectricCost(currentMonth.evn);
+                const monthlySavings = withoutSolar - actualCost;
+                
+                const totalSavings = history.reduce((sum, record) => sum + record.savings, 0);
+                const totalMaintenance = maintenance.reduce((sum, record) => sum + record.cost, 0);
+                const netSavings = totalSavings - totalMaintenance;
+                const recoveryPercent = (netSavings / investment.cost) * 100;
+                
+                const avgMonthlySavings = history.length > 0 
+                    ? history.reduce((sum, record) => sum + record.savings, 0) / history.length 
+                    : monthlySavings;
+                const remainingInvestment = investment.cost - netSavings;
+                const monthsToRecover = avgMonthlySavings > 0 
+                    ? Math.ceil(remainingInvestment / avgMonthlySavings) 
+                    : 0;
+                
+                return {
+                    totalUsage,
+                    withoutSolar,
+                    actualCost,
+                    monthlySavings,
+                    totalSavings,
+                    totalMaintenance,
+                    netSavings,
+                    recoveryPercent,
+                    monthsToRecover
+                };
+            };
 
-                {/* Khu vực biểu đồ */}
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <h2 className="text-xl font-bold text-gray-800 mb-4">Hiệu Suất Năng Lượng 6 Tháng</h2>
-                  <div className="w-full h-80">
-                    {!isChartReady ? (
-                        <div className="flex items-center justify-center h-full text-gray-500">
-                            Đang chờ tải thư viện biểu đồ...
+            const savings = calculateSavings();
+
+            const handleSaveMonth = () => {
+                const [year, month] = currentMonth.month.split('-');
+                const formattedMonth = `Tháng ${month}-${year}`;
+                
+                const newRecord = {
+                    month: formattedMonth,
+                    evn: currentMonth.evn,
+                    solar: currentMonth.solar,
+                    cost: savings.actualCost,
+                    savings: savings.monthlySavings
+                };
+                
+                setHistory([...history, newRecord]);
+            };
+
+            const handleDeleteRecord = (index) => {
+                const newHistory = history.filter((item, i) => i !== index);
+                setHistory(newHistory);
+            };
+
+            const handleUpdatePrice = (index, field, value) => {
+                const newPrices = [...electricPrice];
+                newPrices[index][field] = parseInt(value) || 0;
+                setElectricPrice(newPrices);
+            };
+
+            const handleResetPrice = () => {
+                setElectricPrice(DEFAULT_ELECTRIC_PRICE);
+                setPriceUpdateDate(new Date().toISOString().slice(0, 10));
+            };
+
+            const handleAddMaintenance = () => {
+                if (!newMaintenance.description.trim() || newMaintenance.cost <= 0) {
+                    return;
+                }
+                
+                const record = {
+                    date: newMaintenance.date,
+                    description: newMaintenance.description,
+                    cost: parseInt(newMaintenance.cost)
+                };
+                
+                setMaintenance([...maintenance, record]);
+                setNewMaintenance({
+                    date: new Date().toISOString().slice(0, 10),
+                    description: '',
+                    cost: 0
+                });
+            };
+
+            const handleDeleteMaintenance = (index) => {
+                const newMaintenance = maintenance.filter((item, i) => i !== index);
+                setMaintenance(newMaintenance);
+            };
+
+            const handleExportData = () => {
+                const data = {
+                    version: '1.0',
+                    exportDate: new Date().toISOString(),
+                    contracts,
+                    electricPrice,
+                    priceUpdateDate,
+                    investment,
+                    history,
+                    maintenance
+                };
+                
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `solar-saver-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            };
+
+            const handleImportData = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (data.contracts) setContracts(data.contracts);
+                        if (data.electricPrice) setElectricPrice(data.electricPrice);
+                        if (data.priceUpdateDate) setPriceUpdateDate(data.priceUpdateDate);
+                        if (data.investment) setInvestment(data.investment);
+                        if (data.history) setHistory(data.history);
+                        if (data.maintenance) setMaintenance(data.maintenance);
+                    } catch (error) {
+                        console.error('Import error:', error);
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+                    <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-6 shadow-lg">
+                        <h1 className="text-3xl font-bold flex items-center gap-2">
+                            ☀️ Solar Saver
+                        </h1>
+                        <p className="text-blue-100 mt-1">Theo dõi tiết kiệm điện mặt trời</p>
+                    </div>
+
+                    <div className="max-w-6xl mx-auto p-4">
+                        {activeTab === 'home' && (
+                            <div className="space-y-6">
+                                {/* Content tương tự như artifact trước */}
+                                <div className="bg-white rounded-xl shadow-lg p-6">
+                                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Nhập liệu tháng</h2>
+                                    <div className="grid md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Tháng</label>
+                                            <input
+                                                type="month"
+                                                value={currentMonth.month}
+                                                onChange={(e) => setCurrentMonth({...currentMonth, month: e.target.value})}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Điện lưới (kWh)</label>
+                                            <input
+                                                type="number"
+                                                value={currentMonth.evn}
+                                                onChange={(e) => setCurrentMonth({...currentMonth, evn: parseInt(e.target.value) || 0})}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Solar (kWh)</label>
+                                            <input
+                                                type="number"
+                                                value={currentMonth.solar}
+                                                onChange={(e) => setCurrentMonth({...currentMonth, solar: parseInt(e.target.value) || 0})}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Summary cards và các phần khác... */}
+                                <button
+                                    onClick={handleSaveMonth}
+                                    className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg"
+                                >
+                                    💾 Lưu dữ liệu tháng
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Bottom Navigation */}
+                    <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
+                        <div className="max-w-6xl mx-auto flex justify-around">
+                            <button
+                                onClick={() => setActiveTab('home')}
+                                className={`flex-1 py-4 flex flex-col items-center gap-1 ${
+                                    activeTab === 'home' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'
+                                }`}
+                            >
+                                <HomeIcon />
+                                <span className="text-xs font-medium">Trang chủ</span>
+                            </button>
+                            
+                            <button
+                                onClick={() => setActiveTab('history')}
+                                className={`flex-1 py-4 flex flex-col items-center gap-1 ${
+                                    activeTab === 'history' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'
+                                }`}
+                            >
+                                <HistoryIcon />
+                                <span className="text-xs font-medium">Lịch sử</span>
+                            </button>
+                            
+                            <button
+                                onClick={() => setActiveTab('settings')}
+                                className={`flex-1 py-4 flex flex-col items-center gap-1 ${
+                                    activeTab === 'settings' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'
+                                }`}
+                            >
+                                <SettingsIcon />
+                                <span className="text-xs font-medium">Cài đặt</span>
+                            </button>
                         </div>
-                    ) : (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                            <XAxis dataKey="name" stroke="#333" />
-                            <YAxis 
-                                yAxisId="left" 
-                                stroke="#8884d8" 
-                                tickFormatter={(value) => `${value} kWh`}
-                                domain={[600, 1100]}
-                            />
-                             <YAxis 
-                                yAxisId="right" 
-                                orientation="right" 
-                                stroke="#82ca9d" 
-                                tickFormatter={(value) => `${(value/1000000).toFixed(1)} Tr`}
-                            />
-                            <Tooltip 
-                              contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '8px', padding: '10px' }}
-                              labelStyle={{ fontWeight: 'bold' }}
-                              formatter={(value, name, props) => [`${value} ${props.dataKey.split(' ')[1] || ''}`, name]}
-                            />
-                            <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                            {/* Đường Năng lượng Sản xuất (kWh) */}
-                            <Line 
-                                yAxisId="left" 
-                                type="monotone" 
-                                dataKey="Sản xuất (kWh)" 
-                                stroke="#8884d8" 
-                                strokeWidth={2} 
-                                activeDot={{ r: 8 }} 
-                            />
-                            {/* Đường Tiết kiệm (VND) */}
-                            <Line 
-                                yAxisId="right"
-                                type="monotone" 
-                                dataKey="Tiết kiệm (VND)" 
-                                stroke="#82ca9d" 
-                                strokeWidth={2} 
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                    )}
-                  </div>
+                    </div>
+
+                    <div className="h-20"></div>
                 </div>
-              </div>
-            </div>
-          );
-        };
+            );
+        }
 
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 
-        // --- Đăng ký Service Worker ---
+    <script>
+        // Register Service Worker for PWA
         if ('serviceWorker' in navigator) {
-          window.addEventListener('load', () => {
-            // Sửa lỗi: Sử dụng đường dẫn tuyệt đối cho Service Worker
-            navigator.serviceWorker.register('/service-worker.js')
-              .then(registration => {
-                console.log('Service Worker đã đăng ký thành công:', registration.scope);
-              })
-              .catch(error => {
-                console.error('Đăng ký Service Worker thất bại:', error);
-              });
-          });
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed'));
         }
     </script>
 </body>
