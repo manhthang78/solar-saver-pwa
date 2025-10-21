@@ -2,74 +2,151 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Theo dõi tiết kiệm điện mặt trời">
     <meta name="theme-color" content="#2563eb">
-    <title>Solar Saver</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Solar Saver - Theo dõi tiết kiệm điện mặt trời</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" id="manifest-placeholder">
+    
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
-        body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
         #root { min-height: 100vh; }
+        
+        /* Prevent pull-to-refresh */
+        body { overscroll-behavior-y: contain; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState } = React;
+    <script>
+        // Generate manifest dynamically
+        const manifestData = {
+            "name": "Solar Saver",
+            "short_name": "Solar Saver",
+            "description": "Theo dõi tiết kiệm điện mặt trời",
+            "start_url": "./",
+            "display": "standalone",
+            "background_color": "#ffffff",
+            "theme_color": "#2563eb",
+            "orientation": "portrait-primary",
+            "scope": "./",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%232563eb' width='192' height='192'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle' fill='%23fbbf24'%3E☀️%3C/text%3E%3C/svg%3E",
+                    "sizes": "192x192",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                },
+                {
+                    "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%232563eb' width='512' height='512'/%3E%3Ctext x='256' y='350' font-size='280' text-anchor='middle' fill='%23fbbf24'%3E☀️%3C/text%3E%3C/svg%3E",
+                    "sizes": "512x512",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                }
+            ]
+        };
 
-        // Icon components (inline SVG)
-        const HomeIcon = () => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        document.getElementById('manifest-placeholder').setAttribute('href', manifestURL);
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const CACHE_NAME = 'solar-saver-v1';
+                
+                self.addEventListener('install', event => {
+                    self.skipWaiting();
+                });
+                
+                self.addEventListener('activate', event => {
+                    event.waitUntil(clients.claim());
+                });
+                
+                self.addEventListener('fetch', event => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then(response => response || fetch(event.request))
+                            .catch(() => caches.match('/'))
+                    );
+                });
+            `;
+            
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            const swURL = URL.createObjectURL(swBlob);
+            
+            navigator.serviceWorker.register(swURL)
+                .then(() => console.log('SW registered'))
+                .catch(err => console.error('SW registration failed:', err));
+        }
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Icon Components
+        const HomeIcon = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                 <polyline points="9 22 9 12 15 12 15 22"/>
             </svg>
         );
 
-        const HistoryIcon = () => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        const HistoryIcon = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"/>
                 <polyline points="12 6 12 12 16 14"/>
             </svg>
         );
 
-        const SettingsIcon = () => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        const SettingsIcon = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="3"/>
-                <path d="M12 1v6m0 6v6m-9-9h6m6 0h6m-16.97 1.76l4.24 4.24m6.36 0l4.24-4.24m-4.24-6.36l4.24 4.24m-13.6 0l4.24-4.24"/>
+                <path d="M12 1v6m0 6v6"/>
             </svg>
         );
 
-        const TrashIcon = () => (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        const TrashIcon = ({ size = 18 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="3 6 5 6 21 6"/>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
             </svg>
         );
 
-        const DownloadIcon = () => (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        const DownloadIcon = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
         );
 
-        const UploadIcon = () => (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        const UploadIcon = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="17 8 12 3 7 8"/>
                 <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
         );
 
-        // Biểu giá điện sinh hoạt
+        // Constants
         const DEFAULT_ELECTRIC_PRICE = [
             { bac: 1, from: 0, to: 50, price: 1984 },
             { bac: 2, from: 51, to: 100, price: 2050 },
@@ -83,63 +160,83 @@
 
         function App() {
             const [activeTab, setActiveTab] = useState('home');
+            
             const [contracts, setContracts] = useState(() => {
-                const saved = localStorage.getItem('contracts');
-                return saved ? parseInt(saved) : 2;
+                try {
+                    const saved = localStorage.getItem('solar_contracts');
+                    return saved ? parseInt(saved) : 2;
+                } catch { return 2; }
             });
+            
             const [electricPrice, setElectricPrice] = useState(() => {
-                const saved = localStorage.getItem('electricPrice');
-                return saved ? JSON.parse(saved) : DEFAULT_ELECTRIC_PRICE;
+                try {
+                    const saved = localStorage.getItem('solar_electricPrice');
+                    return saved ? JSON.parse(saved) : DEFAULT_ELECTRIC_PRICE;
+                } catch { return DEFAULT_ELECTRIC_PRICE; }
             });
+            
             const [priceUpdateDate, setPriceUpdateDate] = useState(() => {
-                return localStorage.getItem('priceUpdateDate') || '2025-01-01';
+                try {
+                    return localStorage.getItem('solar_priceUpdateDate') || '2025-01-01';
+                } catch { return '2025-01-01'; }
             });
+            
             const [investment, setInvestment] = useState(() => {
-                const saved = localStorage.getItem('investment');
-                return saved ? JSON.parse(saved) : { capacity: 8610, power: 14.3, cost: 140000000 };
+                try {
+                    const saved = localStorage.getItem('solar_investment');
+                    return saved ? JSON.parse(saved) : { capacity: 9840, power: 14.3, cost: 150000000 };
+                } catch { return { capacity: 9840, power: 14.3, cost: 150000000 }; }
             });
+            
             const [currentMonth, setCurrentMonth] = useState({
                 month: new Date().toISOString().slice(0, 7),
-                evn: 0,
-                solar: 0
+                evn: 350,
+                solar: 600
             });
+            
             const [history, setHistory] = useState(() => {
-                const saved = localStorage.getItem('history');
-                return saved ? JSON.parse(saved) : [];
+                try {
+                    const saved = localStorage.getItem('solar_history');
+                    return saved ? JSON.parse(saved) : [];
+                } catch { return []; }
             });
+            
             const [maintenance, setMaintenance] = useState(() => {
-                const saved = localStorage.getItem('maintenance');
-                return saved ? JSON.parse(saved) : [];
+                try {
+                    const saved = localStorage.getItem('solar_maintenance');
+                    return saved ? JSON.parse(saved) : [];
+                } catch { return []; }
             });
+            
             const [newMaintenance, setNewMaintenance] = useState({
                 date: new Date().toISOString().slice(0, 10),
                 description: '',
                 cost: 0
             });
 
-            // Save to localStorage when data changes
-            React.useEffect(() => {
-                localStorage.setItem('contracts', contracts);
+            // Auto-save to localStorage
+            useEffect(() => {
+                try { localStorage.setItem('solar_contracts', contracts); } catch {}
             }, [contracts]);
 
-            React.useEffect(() => {
-                localStorage.setItem('electricPrice', JSON.stringify(electricPrice));
+            useEffect(() => {
+                try { localStorage.setItem('solar_electricPrice', JSON.stringify(electricPrice)); } catch {}
             }, [electricPrice]);
 
-            React.useEffect(() => {
-                localStorage.setItem('priceUpdateDate', priceUpdateDate);
+            useEffect(() => {
+                try { localStorage.setItem('solar_priceUpdateDate', priceUpdateDate); } catch {}
             }, [priceUpdateDate]);
 
-            React.useEffect(() => {
-                localStorage.setItem('investment', JSON.stringify(investment));
+            useEffect(() => {
+                try { localStorage.setItem('solar_investment', JSON.stringify(investment)); } catch {}
             }, [investment]);
 
-            React.useEffect(() => {
-                localStorage.setItem('history', JSON.stringify(history));
+            useEffect(() => {
+                try { localStorage.setItem('solar_history', JSON.stringify(history)); } catch {}
             }, [history]);
 
-            React.useEffect(() => {
-                localStorage.setItem('maintenance', JSON.stringify(maintenance));
+            useEffect(() => {
+                try { localStorage.setItem('solar_maintenance', JSON.stringify(maintenance)); } catch {}
             }, [maintenance]);
 
             const calculateElectricCost = (kwh) => {
@@ -217,8 +314,7 @@
             };
 
             const handleDeleteRecord = (index) => {
-                const newHistory = history.filter((item, i) => i !== index);
-                setHistory(newHistory);
+                setHistory(history.filter((_, i) => i !== index));
             };
 
             const handleUpdatePrice = (index, field, value) => {
@@ -233,17 +329,14 @@
             };
 
             const handleAddMaintenance = () => {
-                if (!newMaintenance.description.trim() || newMaintenance.cost <= 0) {
-                    return;
-                }
+                if (!newMaintenance.description.trim() || newMaintenance.cost <= 0) return;
                 
-                const record = {
+                setMaintenance([...maintenance, {
                     date: newMaintenance.date,
                     description: newMaintenance.description,
                     cost: parseInt(newMaintenance.cost)
-                };
+                }]);
                 
-                setMaintenance([...maintenance, record]);
                 setNewMaintenance({
                     date: new Date().toISOString().slice(0, 10),
                     description: '',
@@ -252,8 +345,7 @@
             };
 
             const handleDeleteMaintenance = (index) => {
-                const newMaintenance = maintenance.filter((item, i) => i !== index);
-                setMaintenance(newMaintenance);
+                setMaintenance(maintenance.filter((_, i) => i !== index));
             };
 
             const handleExportData = () => {
@@ -288,7 +380,6 @@
                 reader.onload = (e) => {
                     try {
                         const data = JSON.parse(e.target.result);
-                        
                         if (data.contracts) setContracts(data.contracts);
                         if (data.electricPrice) setElectricPrice(data.electricPrice);
                         if (data.priceUpdateDate) setPriceUpdateDate(data.priceUpdateDate);
@@ -304,28 +395,28 @@
             };
 
             return (
-                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-                    <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-6 shadow-lg">
-                        <h1 className="text-3xl font-bold flex items-center gap-2">
-                            ☀️ Solar Saver
-                        </h1>
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 pb-20">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-6 shadow-lg sticky top-0 z-10">
+                        <h1 className="text-3xl font-bold">☀️ Solar Saver</h1>
                         <p className="text-blue-100 mt-1">Theo dõi tiết kiệm điện mặt trời</p>
                     </div>
 
+                    {/* Main Content */}
                     <div className="max-w-6xl mx-auto p-4">
                         {activeTab === 'home' && (
                             <div className="space-y-6">
-                                {/* Content tương tự như artifact trước */}
+                                {/* Input Section */}
                                 <div className="bg-white rounded-xl shadow-lg p-6">
                                     <h2 className="text-2xl font-bold text-gray-800 mb-4">Nhập liệu tháng</h2>
-                                    <div className="grid md:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Tháng</label>
                                             <input
                                                 type="month"
                                                 value={currentMonth.month}
                                                 onChange={(e) => setCurrentMonth({...currentMonth, month: e.target.value})}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
                                         <div>
@@ -334,7 +425,7 @@
                                                 type="number"
                                                 value={currentMonth.evn}
                                                 onChange={(e) => setCurrentMonth({...currentMonth, evn: parseInt(e.target.value) || 0})}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
                                         <div>
@@ -343,29 +434,495 @@
                                                 type="number"
                                                 value={currentMonth.solar}
                                                 onChange={(e) => setCurrentMonth({...currentMonth, solar: parseInt(e.target.value) || 0})}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Summary cards và các phần khác... */}
+                                {/* Summary Cards */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl shadow-lg p-6">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-lg font-semibold">Nếu không có Solar</h3>
+                                            <span className="text-3xl">⚡</span>
+                                        </div>
+                                        <p className="text-4xl font-bold mb-1">{savings.totalUsage} kWh</p>
+                                        <p className="text-2xl font-semibold">{savings.withoutSolar.toLocaleString('vi-VN')} đồng</p>
+                                    </div>
+
+                                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-lg p-6">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-lg font-semibold">Thực tế trả</h3>
+                                            <span className="text-3xl">💰</span>
+                                        </div>
+                                        <p className="text-4xl font-bold mb-1">{currentMonth.evn} kWh</p>
+                                        <p className="text-2xl font-semibold">{savings.actualCost.toLocaleString('vi-VN')} đồng</p>
+                                    </div>
+
+                                    <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl shadow-lg p-6">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-lg font-semibold">Tiết kiệm tháng này</h3>
+                                            <span className="text-3xl">☀️</span>
+                                        </div>
+                                        <p className="text-4xl font-bold mb-1">{currentMonth.solar} kWh</p>
+                                        <p className="text-2xl font-semibold">{savings.monthlySavings.toLocaleString('vi-VN')} đồng</p>
+                                    </div>
+
+                                    <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl shadow-lg p-6">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-lg font-semibold">Tổng tiết kiệm tích lũy</h3>
+                                            <span className="text-3xl">📈</span>
+                                        </div>
+                                        <p className="text-4xl font-bold mb-1">{savings.recoveryPercent.toFixed(2)}%</p>
+                                        <p className="text-2xl font-semibold">{savings.totalSavings.toLocaleString('vi-VN')} đồng</p>
+                                    </div>
+                                </div>
+
+                                {/* Recovery Info */}
+                                <div className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-xl shadow-lg p-6">
+                                    {savings.netSavings >= investment.cost ? (
+                                        <>
+                                            <h3 className="text-xl font-bold mb-3">🎉 Lãi tích lũy sử dụng solar</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <p className="text-sm opacity-90">Vốn đầu tư đã hoàn</p>
+                                                    <p className="text-2xl font-bold">{investment.cost.toLocaleString('vi-VN')} đồng</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm opacity-90">Chi phí bảo trì</p>
+                                                    <p className="text-2xl font-bold">{savings.totalMaintenance.toLocaleString('vi-VN')} đồng</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm opacity-90">Tổng lãi ròng</p>
+                                                    <p className="text-2xl font-bold">{(savings.netSavings - investment.cost).toLocaleString('vi-VN')} đồng</p>
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 bg-white bg-opacity-20 rounded-lg p-3 text-center">
+                                                <p className="text-sm opacity-90">Hoàn vốn sau {history.length} tháng</p>
+                                                <p className="text-3xl font-bold mt-1">✓ Đã hoàn vốn 100%</p>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <h3 className="text-xl font-bold mb-3">Thông tin hoàn vốn</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <p className="text-sm opacity-90">Vốn đầu tư</p>
+                                                    <p className="text-2xl font-bold">{investment.cost.toLocaleString('vi-VN')} đồng</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm opacity-90">Chi phí bảo trì</p>
+                                                    <p className="text-2xl font-bold text-red-200">{savings.totalMaintenance.toLocaleString('vi-VN')} đồng</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm opacity-90">Dự kiến hoàn vốn</p>
+                                                    <p className="text-2xl font-bold">{savings.monthsToRecover} tháng</p>
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 text-center">
+                                                <p className="text-sm opacity-90">Lãi ròng hiện tại</p>
+                                                <p className="text-xl font-bold">{savings.netSavings.toLocaleString('vi-VN')} đồng</p>
+                                            </div>
+                                            <div className="mt-4 bg-white bg-opacity-20 rounded-lg h-4 overflow-hidden">
+                                                <div 
+                                                    className="bg-white h-full transition-all duration-500"
+                                                    style={{width: `${Math.min(savings.recoveryPercent, 100)}%`}}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+
+                                {/* Maintenance Summary */}
+                                {maintenance.length > 0 && (
+                                    <div className="bg-white rounded-xl shadow-lg p-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-xl font-bold text-gray-800">Chi phí bảo trì Solar</h3>
+                                            <span className="text-2xl font-bold text-red-600">
+                                                {savings.totalMaintenance.toLocaleString('vi-VN')} đ
+                                            </span>
+                                        </div>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full">
+                                                <thead>
+                                                    <tr className="bg-gradient-to-r from-red-50 to-orange-50">
+                                                        <th className="px-4 py-2 text-left text-sm font-semibold">Ngày</th>
+                                                        <th className="px-4 py-2 text-left text-sm font-semibold">Mô tả</th>
+                                                        <th className="px-4 py-2 text-right text-sm font-semibold">Chi phí</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {maintenance.slice(-5).reverse().map((record, index) => (
+                                                        <tr key={index} className="border-b hover:bg-gray-50">
+                                                            <td className="px-4 py-2 text-sm">{new Date(record.date).toLocaleDateString('vi-VN')}</td>
+                                                            <td className="px-4 py-2 text-sm">{record.description}</td>
+                                                            <td className="px-4 py-2 text-right text-sm font-semibold text-red-600">
+                                                                {record.cost.toLocaleString('vi-VN')} đ
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        {maintenance.length > 5 && (
+                                            <p className="text-sm text-gray-500 mt-2 text-center">
+                                                Hiển thị 5 chi phí gần nhất. Xem tất cả trong tab Cài đặt.
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Save Button */}
                                 <button
                                     onClick={handleSaveMonth}
-                                    className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg"
+                                    className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl active:scale-95 transition-all"
                                 >
                                     💾 Lưu dữ liệu tháng
                                 </button>
                             </div>
                         )}
+
+                        {activeTab === 'history' && (
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-2xl font-bold text-gray-800">Lịch sử theo dõi</h2>
+                                    <div className="text-right">
+                                        <p className="text-sm text-gray-600">Số tháng đã sử dụng</p>
+                                        <p className="text-3xl font-bold text-blue-600">{history.length}</p>
+                                    </div>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="bg-gradient-to-r from-blue-100 to-green-100">
+                                                <th className="px-4 py-3 text-left font-semibold">Kỳ sử dụng</th>
+                                                <th className="px-4 py-3 text-right font-semibold">EVN</th>
+                                                <th className="px-4 py-3 text-right font-semibold">Solar</th>
+                                                <th className="px-4 py-3 text-right font-semibold">Thực tế trả</th>
+                                                <th className="px-4 py-3 text-right font-semibold">Tiết kiệm</th>
+                                                <th className="px-4 py-3 text-center font-semibold">Xóa</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {history.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                                                        Chưa có dữ liệu. Hãy thêm dữ liệu tháng từ trang chủ.
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                history.map((record, index) => (
+                                                    <tr key={index} className="border-b hover:bg-gray-50">
+                                                        <td className="px-4 py-3">{record.month}</td>
+                                                        <td className="px-4 py-3 text-right">{record.evn} kWh</td>
+                                                        <td className="px-4 py-3 text-right">{record.solar} kWh</td>
+                                                        <td className="px-4 py-3 text-right font-semibold text-blue-600">
+                                                            {record.cost.toLocaleString('vi-VN')} đ
+                                                        </td>
+                                                        <td className="px-4 py-3 text-right font-semibold text-green-600">
+                                                            {record.savings.toLocaleString('vi-VN')} đ
+                                                        </td>
+                                                        <td className="px-4 py-3 text-center">
+                                                            <button
+                                                                onClick={() => handleDeleteRecord(index)}
+                                                                className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors active:scale-95"
+                                                                type="button"
+                                                            >
+                                                                <TrashIcon />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                        {history.length > 0 && (
+                                            <tfoot>
+                                                <tr className="bg-gradient-to-r from-green-100 to-blue-100 font-bold">
+                                                    <td className="px-4 py-3" colSpan="3">Tổng cộng</td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        {history.reduce((sum, r) => sum + r.cost, 0).toLocaleString('vi-VN')} đ
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right text-green-600">
+                                                        {history.reduce((sum, r) => sum + r.savings, 0).toLocaleString('vi-VN')} đ
+                                                    </td>
+                                                    <td></td>
+                                                </tr>
+                                                <tr className="bg-gradient-to-r from-blue-50 to-green-50 font-semibold">
+                                                    <td className="px-4 py-3" colSpan="3">Trung bình hàng tháng</td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        {Math.round(history.reduce((sum, r) => sum + r.cost, 0) / history.length).toLocaleString('vi-VN')} đ
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right text-green-600">
+                                                        {Math.round(history.reduce((sum, r) => sum + r.savings, 0) / history.length).toLocaleString('vi-VN')} đ
+                                                    </td>
+                                                    <td></td>
+                                                </tr>
+                                            </tfoot>
+                                        )}
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'settings' && (
+                            <div className="space-y-6">
+                                {/* Import/Export */}
+                                <div className="bg-white rounded-xl shadow-lg p-6">
+                                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Sao lưu & Khôi phục dữ liệu</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <button
+                                            onClick={handleExportData}
+                                            className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 active:scale-95 transition-all font-semibold"
+                                        >
+                                            <DownloadIcon />
+                                            Xuất dữ liệu (Export)
+                                        </button>
+                                        
+                                        <label className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95 transition-all font-semibold cursor-pointer">
+                                            <UploadIcon />
+                                            Nhập dữ liệu (Import)
+                                            <input
+                                                type="file"
+                                                accept=".json"
+                                                onChange={handleImportData}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    </div>
+                                    <p className="mt-4 text-sm text-gray-600">
+                                        💡 <strong>Xuất dữ liệu:</strong> Tải file backup để lưu trữ hoặc chuyển sang thiết bị khác<br/>
+                                        💡 <strong>Nhập dữ liệu:</strong> Khôi phục dữ liệu từ file backup
+                                    </p>
+                                </div>
+
+                                {/* System Settings */}
+                                <div className="bg-white rounded-xl shadow-lg p-6">
+                                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Cài đặt hệ thống</h2>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Số hợp đồng/công tơ</label>
+                                        <input
+                                            type="number"
+                                            value={contracts}
+                                            onChange={(e) => setContracts(parseInt(e.target.value) || 1)}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Investment */}
+                                <div className="bg-white rounded-xl shadow-lg p-6">
+                                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Mức đầu tư Solar</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Hệ (Wh)</label>
+                                            <input
+                                                type="number"
+                                                value={investment.capacity}
+                                                onChange={(e) => setInvestment({...investment, capacity: parseInt(e.target.value) || 0})}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Lưu trữ (kW)</label>
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                value={investment.power}
+                                                onChange={(e) => setInvestment({...investment, power: parseFloat(e.target.value) || 0})}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Thành tiền (VNĐ)</label>
+                                            <input
+                                                type="number"
+                                                value={investment.cost}
+                                                onChange={(e) => setInvestment({...investment, cost: parseInt(e.target.value) || 0})}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Electric Price */}
+                                <div className="bg-white rounded-xl shadow-lg p-6">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h2 className="text-2xl font-bold text-gray-800">Biểu giá điện sinh hoạt</h2>
+                                        <button
+                                            onClick={handleResetPrice}
+                                            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 active:scale-95 transition-all text-sm"
+                                        >
+                                            Khôi phục mặc định
+                                        </button>
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Ngày cập nhật giá điện</label>
+                                        <input
+                                            type="date"
+                                            value={priceUpdateDate}
+                                            onChange={(e) => setPriceUpdateDate(e.target.value)}
+                                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="bg-blue-100">
+                                                    <th className="px-4 py-2 text-left">Bậc</th>
+                                                    <th className="px-4 py-2 text-center">Từ (kWh)</th>
+                                                    <th className="px-4 py-2 text-center">Đến (kWh)</th>
+                                                    <th className="px-4 py-2 text-right">Giá (đồng/kWh)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {electricPrice.map((tier, index) => (
+                                                    <tr key={tier.bac} className="border-b">
+                                                        <td className="px-4 py-2">Bậc {tier.bac}</td>
+                                                        <td className="px-4 py-2 text-center">
+                                                            <input
+                                                                type="number"
+                                                                value={tier.from}
+                                                                onChange={(e) => handleUpdatePrice(index, 'from', e.target.value)}
+                                                                className="w-20 px-2 py-1 border rounded text-center"
+                                                                disabled={tier.bac === 1}
+                                                            />
+                                                        </td>
+                                                        <td className="px-4 py-2 text-center">
+                                                            <input
+                                                                type="number"
+                                                                value={tier.to === 999999 ? '' : tier.to}
+                                                                placeholder="∞"
+                                                                onChange={(e) => handleUpdatePrice(index, 'to', e.target.value || 999999)}
+                                                                className="w-20 px-2 py-1 border rounded text-center"
+                                                            />
+                                                        </td>
+                                                        <td className="px-4 py-2 text-right">
+                                                            <input
+                                                                type="number"
+                                                                value={tier.price}
+                                                                onChange={(e) => handleUpdatePrice(index, 'price', e.target.value)}
+                                                                className="w-28 px-2 py-1 border rounded text-right font-semibold"
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p className="mt-4 text-sm text-gray-600">
+                                        * Với {contracts} hợp đồng, mức sử dụng mỗi bậc = mức gốc × {contracts}<br/>
+                                        * Ví dụ: Bậc 1 (0-50kWh) × {contracts} = 0-{50 * contracts}kWh<br/>
+                                        * Thuế GTGT: {TAX_RATE * 100}%<br/>
+                                        * Cập nhật ngày: {new Date(priceUpdateDate).toLocaleDateString('vi-VN')}
+                                    </p>
+                                </div>
+
+                                {/* Maintenance */}
+                                <div className="bg-white rounded-xl shadow-lg p-6">
+                                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Chi phí bảo trì Solar</h2>
+                                    <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                                        <h3 className="font-semibold text-gray-700 mb-3">Thêm chi phí bảo trì mới</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Ngày</label>
+                                                <input
+                                                    type="date"
+                                                    value={newMaintenance.date}
+                                                    onChange={(e) => setNewMaintenance({...newMaintenance, date: e.target.value})}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="VD: Vệ sinh tấm pin"
+                                                    value={newMaintenance.description}
+                                                    onChange={(e) => setNewMaintenance({...newMaintenance, description: e.target.value})}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Chi phí (VNĐ)</label>
+                                                <input
+                                                    type="number"
+                                                    value={newMaintenance.cost}
+                                                    onChange={(e) => setNewMaintenance({...newMaintenance, cost: parseInt(e.target.value) || 0})}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleAddMaintenance}
+                                            className="mt-3 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 active:scale-95 transition-all font-semibold"
+                                        >
+                                            ➕ Thêm chi phí bảo trì
+                                        </button>
+                                    </div>
+
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="bg-gradient-to-r from-red-100 to-orange-100">
+                                                    <th className="px-4 py-3 text-left font-semibold">Ngày</th>
+                                                    <th className="px-4 py-3 text-left font-semibold">Mô tả</th>
+                                                    <th className="px-4 py-3 text-right font-semibold">Chi phí</th>
+                                                    <th className="px-4 py-3 text-center font-semibold">Xóa</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {maintenance.length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan="4" className="px-4 py-8 text-center text-gray-500">
+                                                            Chưa có chi phí bảo trì nào
+                                                        </td>
+                                                    </tr>
+                                                ) : (
+                                                    maintenance.map((record, index) => (
+                                                        <tr key={index} className="border-b hover:bg-gray-50">
+                                                            <td className="px-4 py-3">{new Date(record.date).toLocaleDateString('vi-VN')}</td>
+                                                            <td className="px-4 py-3">{record.description}</td>
+                                                            <td className="px-4 py-3 text-right font-semibold text-red-600">
+                                                                {record.cost.toLocaleString('vi-VN')} đ
+                                                            </td>
+                                                            <td className="px-4 py-3 text-center">
+                                                                <button
+                                                                    onClick={() => handleDeleteMaintenance(index)}
+                                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors active:scale-95"
+                                                                    type="button"
+                                                                >
+                                                                    <TrashIcon />
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                )}
+                                            </tbody>
+                                            {maintenance.length > 0 && (
+                                                <tfoot>
+                                                    <tr className="bg-gradient-to-r from-orange-100 to-red-100 font-bold">
+                                                        <td className="px-4 py-3" colSpan="2">Tổng chi phí bảo trì</td>
+                                                        <td className="px-4 py-3 text-right text-red-700">
+                                                            {maintenance.reduce((sum, r) => sum + r.cost, 0).toLocaleString('vi-VN')} đ
+                                                        </td>
+                                                        <td></td>
+                                                    </tr>
+                                                </tfoot>
+                                            )}
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Bottom Navigation */}
-                    <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
+                    <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-20">
                         <div className="max-w-6xl mx-auto flex justify-around">
                             <button
                                 onClick={() => setActiveTab('home')}
-                                className={`flex-1 py-4 flex flex-col items-center gap-1 ${
+                                className={`flex-1 py-4 flex flex-col items-center gap-1 transition-colors ${
                                     activeTab === 'home' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'
                                 }`}
                             >
@@ -375,7 +932,7 @@
                             
                             <button
                                 onClick={() => setActiveTab('history')}
-                                className={`flex-1 py-4 flex flex-col items-center gap-1 ${
+                                className={`flex-1 py-4 flex flex-col items-center gap-1 transition-colors ${
                                     activeTab === 'history' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'
                                 }`}
                             >
@@ -385,7 +942,7 @@
                             
                             <button
                                 onClick={() => setActiveTab('settings')}
-                                className={`flex-1 py-4 flex flex-col items-center gap-1 ${
+                                className={`flex-1 py-4 flex flex-col items-center gap-1 transition-colors ${
                                     activeTab === 'settings' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'
                                 }`}
                             >
@@ -394,23 +951,12 @@
                             </button>
                         </div>
                     </div>
-
-                    <div className="h-20"></div>
                 </div>
             );
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
-    </script>
-
-    <script>
-        // Register Service Worker for PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker registered'))
-                .catch(err => console.log('Service Worker registration failed'));
-        }
     </script>
 </body>
 </html>
