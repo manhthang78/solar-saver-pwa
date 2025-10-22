@@ -9,7 +9,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Solar Saver - Theo dõi tiết kiệm điện mặt trời</title>
     
-    <!-- PWA Manifest -->
     <link rel="manifest" id="manifest-placeholder">
     
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -25,6 +24,8 @@
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            /* Ensure the body does not cause horizontal scroll */
+            overflow-x: hidden; 
         }
         #root { min-height: 100vh; }
         
@@ -177,8 +178,8 @@
             
             const [priceUpdateDate, setPriceUpdateDate] = useState(() => {
                 try {
-                    return localStorage.getItem('solar_priceUpdateDate') || '2025-10-05';
-                } catch { return '2025-10-05'; }
+                    return localStorage.getItem('solar_priceUpdateDate') || '2025-05-10';
+                } catch { return '2025-05-10'; }
             });
             
             const [investment, setInvestment] = useState(() => {
@@ -402,8 +403,8 @@
                         <p className="text-blue-100 mt-1">Theo dõi tiết kiệm điện mặt trời</p>
                     </div>
 
-                    {/* Main Content */}
-                    <div className="max-w-6xl mx-auto p-4">
+                    {/* Main Content: Reduced max-width for better mobile centering */}
+                    <div className="max-w-6xl mx-auto p-4 sm:max-w-2xl lg:max-w-6xl">
                         {activeTab === 'home' && (
                             <div className="space-y-6">
                                 {/* Input Section */}
@@ -516,7 +517,7 @@
                                                     <p className="text-2xl font-bold text-red-200">{savings.totalMaintenance.toLocaleString('vi-VN')} đồng</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm opacity-90">Dự kiến hoàn vốn trong</p>
+                                                    <p className="text-sm opacity-90">Dự kiến hoàn vốn sau</p>
                                                     <p className="text-2xl font-bold">{savings.monthsToRecover} tháng</p>
                                                 </div>
                                             </div>
@@ -547,17 +548,17 @@
                                             <table className="w-full">
                                                 <thead>
                                                     <tr className="bg-gradient-to-r from-red-50 to-orange-50">
-                                                        <th className="px-4 py-2 text-left text-sm font-semibold">Ngày</th>
-                                                        <th className="px-4 py-2 text-left text-sm font-semibold">Mô tả</th>
-                                                        <th className="px-4 py-2 text-right text-sm font-semibold">Chi phí</th>
+                                                        <th className="px-4 py-2 text-left text-sm font-semibold whitespace-nowrap">Ngày</th>
+                                                        <th className="px-4 py-2 text-left text-sm font-semibold whitespace-nowrap">Mô tả</th>
+                                                        <th className="px-4 py-2 text-right text-sm font-semibold whitespace-nowrap">Chi phí</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {maintenance.slice(-5).reverse().map((record, index) => (
                                                         <tr key={index} className="border-b hover:bg-gray-50">
-                                                            <td className="px-4 py-2 text-sm">{new Date(record.date).toLocaleDateString('vi-VN')}</td>
+                                                            <td className="px-4 py-2 text-sm whitespace-nowrap">{new Date(record.date).toLocaleDateString('vi-VN')}</td>
                                                             <td className="px-4 py-2 text-sm">{record.description}</td>
-                                                            <td className="px-4 py-2 text-right text-sm font-semibold text-red-600">
+                                                            <td className="px-4 py-2 text-right text-sm font-semibold text-red-600 whitespace-nowrap">
                                                                 {record.cost.toLocaleString('vi-VN')} đ
                                                             </td>
                                                         </tr>
@@ -596,31 +597,31 @@
                                     <table className="w-full">
                                         <thead>
                                             <tr className="bg-gradient-to-r from-blue-100 to-green-100">
-                                                <th className="px-4 py-3 text-left font-semibold">Kỳ sử dụng</th>
-                                                <th className="px-4 py-3 text-right font-semibold">EVN</th>
-                                                <th className="px-4 py-3 text-right font-semibold">Solar</th>
-                                                <th className="px-4 py-3 text-right font-semibold">Thực tế trả</th>
-                                                <th className="px-4 py-3 text-right font-semibold">Tiết kiệm</th>
-                                                <th className="px-4 py-3 text-center font-semibold">Xóa</th>
+                                                <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Kỳ sử dụng</th>
+                                                <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">EVN</th>
+                                                <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Solar</th>
+                                                <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Thực tế trả</th>
+                                                <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Tiết kiệm</th>
+                                                <th className="px-4 py-3 text-center font-semibold whitespace-nowrap">Xóa</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {history.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                                                    <td colSpan="6" className="px-4 py-8 text-center text-gray-500 whitespace-nowrap">
                                                         Chưa có dữ liệu. Hãy thêm dữ liệu tháng từ trang chủ.
                                                     </td>
                                                 </tr>
                                             ) : (
                                                 history.map((record, index) => (
                                                     <tr key={index} className="border-b hover:bg-gray-50">
-                                                        <td className="px-4 py-3">{record.month}</td>
-                                                        <td className="px-4 py-3 text-right">{record.evn} kWh</td>
-                                                        <td className="px-4 py-3 text-right">{record.solar} kWh</td>
-                                                        <td className="px-4 py-3 text-right font-semibold text-blue-600">
+                                                        <td className="px-4 py-3 whitespace-nowrap">{record.month}</td>
+                                                        <td className="px-4 py-3 text-right whitespace-nowrap">{record.evn} kWh</td>
+                                                        <td className="px-4 py-3 text-right whitespace-nowrap">{record.solar} kWh</td>
+                                                        <td className="px-4 py-3 text-right font-semibold text-blue-600 whitespace-nowrap">
                                                             {record.cost.toLocaleString('vi-VN')} đ
                                                         </td>
-                                                        <td className="px-4 py-3 text-right font-semibold text-green-600">
+                                                        <td className="px-4 py-3 text-right font-semibold text-green-600 whitespace-nowrap">
                                                             {record.savings.toLocaleString('vi-VN')} đ
                                                         </td>
                                                         <td className="px-4 py-3 text-center">
@@ -639,21 +640,21 @@
                                         {history.length > 0 && (
                                             <tfoot>
                                                 <tr className="bg-gradient-to-r from-green-100 to-blue-100 font-bold">
-                                                    <td className="px-4 py-3" colSpan="3">Tổng cộng</td>
-                                                    <td className="px-4 py-3 text-right">
+                                                    <td className="px-4 py-3 whitespace-nowrap" colSpan="3">Tổng cộng</td>
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap">
                                                         {history.reduce((sum, r) => sum + r.cost, 0).toLocaleString('vi-VN')} đ
                                                     </td>
-                                                    <td className="px-4 py-3 text-right text-green-600">
+                                                    <td className="px-4 py-3 text-right text-green-600 whitespace-nowrap">
                                                         {history.reduce((sum, r) => sum + r.savings, 0).toLocaleString('vi-VN')} đ
                                                     </td>
                                                     <td></td>
                                                 </tr>
                                                 <tr className="bg-gradient-to-r from-blue-50 to-green-50 font-semibold">
-                                                    <td className="px-4 py-3" colSpan="3">Trung bình hàng tháng</td>
-                                                    <td className="px-4 py-3 text-right">
+                                                    <td className="px-4 py-3 whitespace-nowrap" colSpan="3">Trung bình hàng tháng</td>
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap">
                                                         {Math.round(history.reduce((sum, r) => sum + r.cost, 0) / history.length).toLocaleString('vi-VN')} đ
                                                     </td>
-                                                    <td className="px-4 py-3 text-right text-green-600">
+                                                    <td className="px-4 py-3 text-right text-green-600 whitespace-nowrap">
                                                         {Math.round(history.reduce((sum, r) => sum + r.savings, 0) / history.length).toLocaleString('vi-VN')} đ
                                                     </td>
                                                     <td></td>
@@ -751,7 +752,7 @@
                                         <h2 className="text-2xl font-bold text-gray-800">Biểu giá điện sinh hoạt</h2>
                                         <button
                                             onClick={handleResetPrice}
-                                            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 active:scale-95 transition-all text-sm"
+                                            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 active:scale-95 transition-all text-sm whitespace-nowrap"
                                         >
                                             Khôi phục mặc định
                                         </button>
@@ -762,24 +763,24 @@
                                             type="date"
                                             value={priceUpdateDate}
                                             onChange={(e) => setPriceUpdateDate(e.target.value)}
-                                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-full"
                                         />
                                     </div>
                                     <div className="overflow-x-auto">
-                                        <table className="w-full">
+                                        <table className="w-full min-w-max">
                                             <thead>
                                                 <tr className="bg-blue-100">
-                                                    <th className="px-4 py-2 text-left">Bậc</th>
-                                                    <th className="px-4 py-2 text-center">Từ (kWh)</th>
-                                                    <th className="px-4 py-2 text-center">Đến (kWh)</th>
-                                                    <th className="px-4 py-2 text-right">Giá (đồng/kWh)</th>
+                                                    <th className="px-4 py-2 text-left whitespace-nowrap">Bậc</th>
+                                                    <th className="px-4 py-2 text-center whitespace-nowrap">Từ (kWh)</th>
+                                                    <th className="px-4 py-2 text-center whitespace-nowrap">Đến (kWh)</th>
+                                                    <th className="px-4 py-2 text-right whitespace-nowrap">Giá (đồng/kWh)</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {electricPrice.map((tier, index) => (
                                                     <tr key={tier.bac} className="border-b">
-                                                        <td className="px-4 py-2">Bậc {tier.bac}</td>
-                                                        <td className="px-4 py-2 text-center">
+                                                        <td className="px-4 py-2 whitespace-nowrap">Bậc {tier.bac}</td>
+                                                        <td className="px-4 py-2 text-center whitespace-nowrap">
                                                             <input
                                                                 type="number"
                                                                 value={tier.from}
@@ -788,7 +789,7 @@
                                                                 disabled={tier.bac === 1}
                                                             />
                                                         </td>
-                                                        <td className="px-4 py-2 text-center">
+                                                        <td className="px-4 py-2 text-center whitespace-nowrap">
                                                             <input
                                                                 type="number"
                                                                 value={tier.to === 999999 ? '' : tier.to}
@@ -797,7 +798,7 @@
                                                                 className="w-20 px-2 py-1 border rounded text-center"
                                                             />
                                                         </td>
-                                                        <td className="px-4 py-2 text-right">
+                                                        <td className="px-4 py-2 text-right whitespace-nowrap">
                                                             <input
                                                                 type="number"
                                                                 value={tier.price}
@@ -862,28 +863,28 @@
                                     </div>
 
                                     <div className="overflow-x-auto">
-                                        <table className="w-full">
+                                        <table className="w-full min-w-max">
                                             <thead>
                                                 <tr className="bg-gradient-to-r from-red-100 to-orange-100">
-                                                    <th className="px-4 py-3 text-left font-semibold">Ngày</th>
-                                                    <th className="px-4 py-3 text-left font-semibold">Mô tả</th>
-                                                    <th className="px-4 py-3 text-right font-semibold">Chi phí</th>
-                                                    <th className="px-4 py-3 text-center font-semibold">Xóa</th>
+                                                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Ngày</th>
+                                                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Mô tả</th>
+                                                    <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Chi phí</th>
+                                                    <th className="px-4 py-3 text-center font-semibold whitespace-nowrap">Xóa</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {maintenance.length === 0 ? (
                                                     <tr>
-                                                        <td colSpan="4" className="px-4 py-8 text-center text-gray-500">
+                                                        <td colSpan="4" className="px-4 py-8 text-center text-gray-500 whitespace-nowrap">
                                                             Chưa có chi phí bảo trì nào
                                                         </td>
                                                     </tr>
                                                 ) : (
                                                     maintenance.map((record, index) => (
                                                         <tr key={index} className="border-b hover:bg-gray-50">
-                                                            <td className="px-4 py-3">{new Date(record.date).toLocaleDateString('vi-VN')}</td>
+                                                            <td className="px-4 py-3 whitespace-nowrap">{new Date(record.date).toLocaleDateString('vi-VN')}</td>
                                                             <td className="px-4 py-3">{record.description}</td>
-                                                            <td className="px-4 py-3 text-right font-semibold text-red-600">
+                                                            <td className="px-4 py-3 text-right font-semibold text-red-600 whitespace-nowrap">
                                                                 {record.cost.toLocaleString('vi-VN')} đ
                                                             </td>
                                                             <td className="px-4 py-3 text-center">
@@ -902,8 +903,8 @@
                                             {maintenance.length > 0 && (
                                                 <tfoot>
                                                     <tr className="bg-gradient-to-r from-orange-100 to-red-100 font-bold">
-                                                        <td className="px-4 py-3" colSpan="2">Tổng chi phí bảo trì</td>
-                                                        <td className="px-4 py-3 text-right text-red-700">
+                                                        <td className="px-4 py-3 whitespace-nowrap" colSpan="2">Tổng chi phí bảo trì</td>
+                                                        <td className="px-4 py-3 text-right text-red-700 whitespace-nowrap">
                                                             {maintenance.reduce((sum, r) => sum + r.cost, 0).toLocaleString('vi-VN')} đ
                                                         </td>
                                                         <td></td>
@@ -959,7 +960,4 @@
         root.render(<App />);
     </script>
 </body>
-
 </html>
-
-
