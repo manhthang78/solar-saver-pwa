@@ -152,8 +152,8 @@
             { bac: 2, from: 51, to: 100, price: 2050 },
             { bac: 3, from: 101, to: 200, price: 2380 },
             { bac: 4, from: 201, to: 300, price: 2998 },
-            { bac: 5, from: 301, to: 400, price: 3350 },
-            { bac: 6, from: 401, to: 999999, price: 3460 }
+            { bac: 5, from: 301, to: 400, price: 3250 },
+            { bac: 6, from: 401, to: 999999, price: 3398 }
         ];
 
         const TAX_RATE = 0.08;
@@ -177,8 +177,8 @@
             
             const [priceUpdateDate, setPriceUpdateDate] = useState(() => {
                 try {
-                    return localStorage.getItem('solar_priceUpdateDate') || '2025-05-10';
-                } catch { return '2025-05-10'; }
+                    return localStorage.getItem('solar_priceUpdateDate') || '2025-10-05';
+                } catch { return '2025-10-05'; }
             });
             
             const [investment, setInvestment] = useState(() => {
@@ -961,4 +961,5 @@
 </body>
 
 </html>
+
 
