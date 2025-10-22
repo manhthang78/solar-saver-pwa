@@ -24,7 +24,7 @@
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            /* Ensure the body does not cause horizontal scroll */
+            /* FIX: Đảm bảo body không bao giờ cuộn ngang */
             overflow-x: hidden; 
         }
         #root { min-height: 100vh; }
@@ -403,8 +403,8 @@
                         <p className="text-blue-100 mt-1">Theo dõi tiết kiệm điện mặt trời</p>
                     </div>
 
-                    {/* Main Content: Reduced max-width for better mobile centering */}
-                    <div className="max-w-6xl mx-auto p-4 sm:max-w-2xl lg:max-w-6xl">
+                    {/* Main Content: Dùng w-full và max-w-xl làm mặc định cho mobile */}
+                    <div className="w-full max-w-xl mx-auto p-4 sm:max-w-2xl lg:max-w-6xl">
                         {activeTab === 'home' && (
                             <div className="space-y-6">
                                 {/* Input Section */}
