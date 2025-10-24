@@ -749,7 +749,7 @@
                                 {/* Electric Price */}
                                 <div className="bg-white rounded-xl shadow-lg p-6">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h2 className="text-2xl font-bold text-gray-800">Biểu giá điện sinh hoạt</h2>
+                                        <h2 className="text-xl font-bold text-gray-800">Biểu giá điện sinh hoạt</h2>
                                         <button
                                             onClick={handleResetPrice}
                                             className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 active:scale-95 transition-all text-sm whitespace-nowrap"
@@ -785,11 +785,11 @@
                                                                 type="number"
                                                                 value={tier.from}
                                                                 onChange={(e) => handleUpdatePrice(index, 'from', e.target.value)}
-                                                                className="w-20 px-2 py-1 border rounded text-center"
+                                                                className="w-20 px-1 py-1 border rounded text-center"
                                                                 disabled={tier.bac === 1}
                                                             />
                                                         </td>
-                                                        <td className="px-4 py-2 text-center whitespace-nowrap">
+                                                        <td className="px-1 py-2 text-center whitespace-nowrap">
                                                             <input
                                                                 type="number"
                                                                 value={tier.to === 999999 ? '' : tier.to}
@@ -798,7 +798,7 @@
                                                                 className="w-20 px-2 py-1 border rounded text-center"
                                                             />
                                                         </td>
-                                                        <td className="px-4 py-2 text-right whitespace-nowrap">
+                                                        <td className="px-1 py-2 text-right whitespace-nowrap">
                                                             <input
                                                                 type="number"
                                                                 value={tier.price}
@@ -962,5 +962,6 @@
 </body>
 
 </html>
+
 
 
