@@ -785,7 +785,7 @@
                                                                 type="number"
                                                                 value={tier.from}
                                                                 onChange={(e) => handleUpdatePrice(index, 'from', e.target.value)}
-                                                                className="w-20 px-1 py-1 border rounded text-center"
+                                                                className="w-18 px-1 py-1 border rounded text-center"
                                                                 disabled={tier.bac === 1}
                                                             />
                                                         </td>
@@ -795,7 +795,7 @@
                                                                 value={tier.to === 999999 ? '' : tier.to}
                                                                 placeholder="∞"
                                                                 onChange={(e) => handleUpdatePrice(index, 'to', e.target.value || 999999)}
-                                                                className="w-20 px-1 py-1 border rounded text-center"
+                                                                className="w-18 px-1 py-1 border rounded text-center"
                                                             />
                                                         </td>
                                                         <td className="px-1 py-2 text-right whitespace-nowrap">
@@ -803,7 +803,7 @@
                                                                 type="number"
                                                                 value={tier.price}
                                                                 onChange={(e) => handleUpdatePrice(index, 'price', e.target.value)}
-                                                                className="w-20 px-1 py-1 border rounded text-right font-semibold"
+                                                                className="w-18 px-1 py-1 border rounded text-left font-semibold"
                                                             />
                                                         </td>
                                                     </tr>
@@ -962,6 +962,7 @@
 </body>
 
 </html>
+
 
 
 
