@@ -399,7 +399,7 @@
                 <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 pb-20">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-6 shadow-lg sticky top-0 z-10">
-                        <h1 className="text-3xl font-bold">☀️ Solar Saver</h1>
+                        <h1 className="text-2xl font-bold">☀️ Solar Saver</h1>
                         <p className="text-blue-100 mt-1">Theo dõi tiết kiệm điện mặt trời</p>
                     </div>
 
@@ -408,8 +408,8 @@
                         {activeTab === 'home' && (
                             <div className="space-y-6">
                                 {/* Input Section */}
-                                <div className="bg-white rounded-xl shadow-lg p-6">
-                                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Nhập liệu tháng</h2>
+                                <div className="bg-white rounded-xl shadow-lg p-4">
+                                    <h2 className="text-lg font-bold text-gray-800 mb-4">Nhập liệu tháng</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Tháng</label>
@@ -442,41 +442,41 @@
                                 </div>
 
                                 {/* Summary Cards */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl shadow-lg p-6">
+                                <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+                                    <div className="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl shadow-lg p-4">
                                         <div className="flex items-center justify-between mb-2">
                                             <h3 className="text-lg font-semibold">Nếu không có Solar</h3>
                                             <span className="text-3xl">⚡</span>
                                         </div>
-                                        <p className="text-4xl font-bold mb-1">{savings.totalUsage} kWh</p>
-                                        <p className="text-2xl font-semibold">{savings.withoutSolar.toLocaleString('vi-VN')} đồng</p>
+                                        <p className="text-2xl font-bold mb-1">{savings.totalUsage} kWh</p>
+                                        <p className="text-lg font-semibold">{savings.withoutSolar.toLocaleString('vi-VN')} đồng</p>
                                     </div>
 
-                                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-lg p-6">
+                                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-lg p-4">
                                         <div className="flex items-center justify-between mb-2">
                                             <h3 className="text-lg font-semibold">Thực tế trả</h3>
                                             <span className="text-3xl">💰</span>
                                         </div>
-                                        <p className="text-4xl font-bold mb-1">{currentMonth.evn} kWh</p>
-                                        <p className="text-2xl font-semibold">{savings.actualCost.toLocaleString('vi-VN')} đồng</p>
+                                        <p className="text-2xl font-bold mb-1">{currentMonth.evn} kWh</p>
+                                        <p className="text-lg font-semibold">{savings.actualCost.toLocaleString('vi-VN')} đồng</p>
                                     </div>
 
-                                    <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl shadow-lg p-6">
+                                    <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl shadow-lg p-4">
                                         <div className="flex items-center justify-between mb-2">
                                             <h3 className="text-lg font-semibold">Tiết kiệm tháng này</h3>
                                             <span className="text-3xl">☀️</span>
                                         </div>
-                                        <p className="text-4xl font-bold mb-1">{currentMonth.solar} kWh</p>
-                                        <p className="text-2xl font-semibold">{savings.monthlySavings.toLocaleString('vi-VN')} đồng</p>
+                                        <p className="text-2xl font-bold mb-1">{currentMonth.solar} kWh</p>
+                                        <p className="text-lg font-semibold">{savings.monthlySavings.toLocaleString('vi-VN')} đồng</p>
                                     </div>
 
-                                    <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl shadow-lg p-6">
+                                    <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl shadow-lg p-4">
                                         <div className="flex items-center justify-between mb-2">
                                             <h3 className="text-lg font-semibold">Tổng tiết kiệm tích lũy</h3>
                                             <span className="text-3xl">📈</span>
                                         </div>
-                                        <p className="text-4xl font-bold mb-1">{savings.recoveryPercent.toFixed(2)}%</p>
-                                        <p className="text-2xl font-semibold">{savings.totalSavings.toLocaleString('vi-VN')} đồng</p>
+                                        <p className="text-2xl font-bold mb-1">{savings.recoveryPercent.toFixed(2)}%</p>
+                                        <p className="text-lg font-semibold">{savings.totalSavings.toLocaleString('vi-VN')} đồng</p>
                                     </div>
                                 </div>
 
@@ -506,7 +506,7 @@
                                         </>
                                     ) : (
                                         <>
-                                            <h3 className="text-xl font-bold mb-3">Thông tin hoàn vốn</h3>
+                                            <h3 className="text-lg font-bold mb-3">Thông tin hoàn vốn</h3>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                 <div>
                                                     <p className="text-sm opacity-90">Vốn đầu tư</p>
@@ -537,7 +537,7 @@
 
                                 {/* Maintenance Summary */}
                                 {maintenance.length > 0 && (
-                                    <div className="bg-white rounded-xl shadow-lg p-6">
+                                    <div className="bg-white rounded-xl shadow-lg p-4">
                                         <div className="flex justify-between items-center mb-4">
                                             <h3 className="text-xl font-bold text-gray-800">Chi phí bảo trì Solar</h3>
                                             <span className="text-2xl font-bold text-red-600">
@@ -597,12 +597,12 @@
                                     <table className="w-full">
                                         <thead>
                                             <tr className="bg-gradient-to-r from-blue-100 to-green-100">
-                                                <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Kỳ sử dụng</th>
-                                                <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">EVN</th>
-                                                <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Solar</th>
-                                                <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Thực tế trả</th>
-                                                <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Tiết kiệm</th>
-                                                <th className="px-4 py-3 text-center font-semibold whitespace-nowrap">Xóa</th>
+                                                <th className="px-1 py-3 text-left font-semibold whitespace-nowrap">Kỳ sử dụng</th>
+                                                <th className="px-1 py-3 text-right font-semibold whitespace-nowrap">EVN</th>
+                                                <th className="px-1 py-3 text-right font-semibold whitespace-nowrap">Solar</th>
+                                                <th className="px-1 py-3 text-right font-semibold whitespace-nowrap">Thực tế trả</th>
+                                                <th className="px-1 py-3 text-right font-semibold whitespace-nowrap">Tiết kiệm</th>
+                                                <th className="px-1 py-3 text-center font-semibold whitespace-nowrap">Xóa</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -770,17 +770,17 @@
                                         <table className="w-full min-w-max">
                                             <thead>
                                                 <tr className="bg-blue-100">
-                                                    <th className="px-4 py-2 text-left whitespace-nowrap">Bậc</th>
-                                                    <th className="px-4 py-2 text-center whitespace-nowrap">Từ (kWh)</th>
-                                                    <th className="px-4 py-2 text-center whitespace-nowrap">Đến (kWh)</th>
-                                                    <th className="px-4 py-2 text-right whitespace-nowrap">Giá (đồng/kWh)</th>
+                                                    <th className="px-1 py-2 text-left whitespace-nowrap">Bậc</th>
+                                                    <th className="px-1 py-2 text-center whitespace-nowrap">Từ (kWh)</th>
+                                                    <th className="px-1 py-2 text-center whitespace-nowrap">Đến (kWh)</th>
+                                                    <th className="px-1 py-2 text-right whitespace-nowrap">Giá (đồng/kWh)</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {electricPrice.map((tier, index) => (
                                                     <tr key={tier.bac} className="border-b">
-                                                        <td className="px-4 py-2 whitespace-nowrap">Bậc {tier.bac}</td>
-                                                        <td className="px-4 py-2 text-center whitespace-nowrap">
+                                                        <td className="px-1 py-2 whitespace-nowrap">Bậc {tier.bac}</td>
+                                                        <td className="px-1 py-2 text-center whitespace-nowrap">
                                                             <input
                                                                 type="number"
                                                                 value={tier.from}
