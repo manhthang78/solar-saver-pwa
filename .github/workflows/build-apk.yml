@@ -11,17 +11,42 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
-      - name: Build APK using PWABuilder
-        uses: pwa-builder/pwabuilder-cloudapk-action@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          pwa-url: 'https://manhthang78.github.io/solar-saver-pwa/'
-          package-name: 'com.solarsaver.app'
-          app-name: 'Solar Saver'
+          node-version: '20'
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      
+      - name: Accept Android licenses
+        run: yes | sdkmanager --licenses || true
+      
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+      
+      - name: Create keystore
+        run: |
+          keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android -dname "CN=Solar Saver, OU=Dev, O=Dev, L=City, ST=State, C=VN"
+      
+      - name: Initialize and Build TWA
+        run: |
+          echo -e "\n\n\n\n\n\nandroid\nandroid\n" | bubblewrap init --manifest https://manhthang78.github.io/solar-saver-pwa/manifest.json
+          bubblewrap build --skipPwaValidation
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: solar-saver-apk
-          path: '*.apk'
+          path: |
+            app-release-signed.apk
+            app-release-unsigned.apk
