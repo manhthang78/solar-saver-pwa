@@ -35,7 +35,7 @@ jobs:
         run: bubblewrap build
       
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: solar-saver-apk
           path: app-release-signed.apk
