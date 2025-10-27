@@ -2,6 +2,7 @@
   "name": "Solar Saver",
   "short_name": "Solar Saver",
   "description": "Theo dõi tiết kiệm điện mặt trời",
+  "dir": "ltr",
   "start_url": "/https://manhthang78.github.io/solar-saver-pwa/",
   "scope": "./",
   "display": "standalone",
@@ -35,4 +36,5 @@
     }
   ]
 }
+
 
