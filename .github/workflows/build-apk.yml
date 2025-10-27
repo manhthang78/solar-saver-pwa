@@ -13,29 +13,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Build APK using PWABuilder
+        uses: pwa-builder/pwabuilder-cloudapk-action@v2
         with:
-          node-version: '18'
-      
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      
-      - name: Install Bubblewrap
-        run: npm install -g @bubblewrap/cli
-      
-      - name: Initialize TWA Project
-        run: |
-          bubblewrap init --manifest https://manhthang78.github.io/solar-saver-pwa/manifest.json
-      
-      - name: Build APK
-        run: bubblewrap build
+          pwa-url: 'https://manhthang78.github.io/solar-saver-pwa/'
+          package-name: 'com.solarsaver.app'
+          app-name: 'Solar Saver'
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: solar-saver-apk
-          path: app-release-signed.apk
+          path: '*.apk'
