@@ -1,20 +1,43 @@
-const CACHE_NAME = 'solar-saver-v1';
+const CACHE_NAME = 'solar-saver-v2'; // Tăng version cache
+const OFFLINE_URL = './offline.html'; // Đường dẫn đến trang offline
 
-// Sự kiện cài đặt: Bỏ qua bước chờ để active ngay lập tức
 self.addEventListener('install', event => {
-    self.skipWaiting();
-});
-
-// Sự kiện kích hoạt: Yêu cầu quyền kiểm soát ngay lập tức
-self.addEventListener('activate', event => {
-    event.waitUntil(clients.claim());
-});
-
-// Sự kiện Fetch: Phục vụ tài nguyên từ cache hoặc mạng
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => response || fetch(event.request))
-            .catch(() => caches.match('/'))
+    // Thêm trang offline vào cache ngay trong quá trình cài đặt
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(cache => cache.add(OFFLINE_URL))
+            .then(() => self.skipWaiting())
     );
+});
+
+self.addEventListener('activate', event => {
+    // Xóa cache cũ
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.filter(name => name !== CACHE_NAME)
+                          .map(name => caches.delete(name))
+            );
+        }).then(() => clients.claim())
+    );
+});
+
+self.addEventListener('fetch', event => {
+    // Chỉ xử lý các yêu cầu điều hướng (HTML)
+    if (event.request.mode === 'navigate' || 
+        (event.request.method === 'GET' && event.request.headers.get('accept').includes('text/html'))) {
+        
+        event.respondWith(
+            fetch(event.request).catch(error => {
+                // Nếu fetch thất bại (ngoại tuyến), phục vụ trang offline
+                return caches.match(OFFLINE_URL);
+            })
+        );
+    } else {
+        // Chiến lược cache-first cho các tài nguyên khác
+        event.respondWith(
+            caches.match(event.request)
+                .then(response => response || fetch(event.request))
+        );
+    }
 });
