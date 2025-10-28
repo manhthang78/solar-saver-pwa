@@ -37,31 +37,12 @@
     <div id="root"></div>
 
     <script>
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                const CACHE_NAME = 'solar-saver-v1';
-                self.addEventListener('install', event => {
-                    self.skipWaiting();
-                });
-                self.addEventListener('activate', event => {
-                    event.waitUntil(clients.claim());
-                });
-                self.addEventListener('fetch', event => {
-                    event.respondWith(
-                        caches.match(event.request)
-                            .then(response => response || fetch(event.request))
-                            .catch(() => caches.match('/'))
-                    );
-                });
-            `;
-            
-            const swBlob = new Blob([swCode], {type: 'application/javascript'});
-            const swURL = URL.createObjectURL(swBlob);
-            navigator.serviceWorker.register(swURL)
-                .then(() => console.log('SW registered'))
-                .catch(err => console.error('SW registration failed:', err));
-        }
+        // Register Service Worker (Static)
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('SW registered'))
+        .catch(err => console.error('SW registration failed:', err));
+}
     </script>
 
     <script type="text/babel">
@@ -918,6 +899,7 @@
 </body>
 
 </html>
+
 
 
 
