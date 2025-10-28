@@ -395,15 +395,6 @@
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Điện lưới (kWh)</label>
-                                            <input
-                                                type="number"
-                                                value={currentMonth.evn}
-                                                onChange={(e) => setCurrentMonth({...currentMonth, evn: parseInt(e.target.value) || 0})}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
                                             {/* SỬA INPUT: Solar -> Tổng tiêu thụ */}
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Tổng tiêu thụ (kWh)</label>
                                             <input
@@ -411,6 +402,15 @@
                                                 value={currentMonth.tongTieuThu} 
                                                 onChange={(e) => setCurrentMonth({...currentMonth, tongTieuThu: parseInt(e.target.value) || 0})} 
                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Điện lưới (kWh)</label>
+                                            <input
+                                                type="number"
+                                                value={currentMonth.evn}
+                                                onChange={(e) => setCurrentMonth({...currentMonth, evn: parseInt(e.target.value) || 0})}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
                                     </div>
@@ -950,3 +950,4 @@
 </body>
 
 </html>
+
